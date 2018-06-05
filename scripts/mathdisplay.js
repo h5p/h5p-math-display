@@ -1,4 +1,4 @@
-/* globals MathJax */
+/* globals MathJax, console */
 
 var H5P = H5P || {};
 
@@ -47,6 +47,7 @@ H5P.MathDisplay = (function () {
 
     if (!params || containsMath(params)) {
       // Load MathJax dynamically
+      // TODO: Make this ready for IE11, sigh
       getMathJax(that.settings.renderers.mathjax)
         .then(function(result) {
           that.mathjax = result;
@@ -82,6 +83,11 @@ H5P.MathDisplay = (function () {
 
       for (let param in params) {
         if (typeof params[param] === 'string') {
+          /*
+           * $$ ... $$ LaTeX block
+           * \[ ... \] LaTeX block
+           * \( ... \) LaTeX inline
+           */
           const mathPattern = /\$\$.+\$\$|\\\[.+\\\]|\\\(.+\\\)/g;
           if (mathPattern.test(params[param])) {
             found = true;
@@ -245,6 +251,7 @@ H5P.MathDisplay = (function () {
       };
     }
 
+    // This branching isn't really necessary now, but it might become.
     if (this.observer) {
       if (!this.updating) {
         this.updating = setTimeout(function () {
@@ -280,6 +287,7 @@ H5P.MathDisplay = (function () {
     return arguments[0];
   };
 
+  // Will reduce polling of the MutationObserver
   const MATHDISPLAY_COOLING_PERIOD = 50;
 
   return MathDisplay;
