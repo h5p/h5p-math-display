@@ -79,7 +79,7 @@ H5P.MathDisplay = (function () {
 
       for (let param in params) {
         if (typeof params[param] === 'string') {
-          const mathPattern = /\$\$.+\$\$|\\\[.+\\\]/g;
+          const mathPattern = /\$\$.+\$\$|\\\[.+\\\]|\\\(.+\\\)/g;
           if (mathPattern.test(params[param])) {
             found = true;
             break;
