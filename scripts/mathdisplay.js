@@ -1,3 +1,5 @@
+/* globals MathJax */
+
 var H5P = H5P || {};
 
 /** @namespace H5P */
@@ -7,7 +9,7 @@ H5P.MathDisplay = (function () {
    * Constructor.
    * adding the MathDisplay library and "new H5P.MathDisplay(this)" to a content type should be enough to make it work
    *
-   * @param {object} parent - Parent. // TODO: Not needed if we can trigger resize, too.
+   * @param {object} parent - Parent.
    * @param {object} [params] - Params of library.
    * @param {object} [container] - DOM object to use math on.
    * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
@@ -45,26 +47,27 @@ H5P.MathDisplay = (function () {
 
     if (!params || containsMath(params)) {
       // Load MathJax dynamically
-      getMathJax(that.settings.renderers.mathjax).then(function(result) {
-        that.mathjax = result;
+      getMathJax(that.settings.renderers.mathjax)
+        .then(function(result) {
+          that.mathjax = result;
 
-        // Choose wisely (or keep both?)
-        if (that.settings.observers.indexOf('mutationObserver') !== -1) {
-          that.startObserver();
-        }
-        if (that.settings.observers.indexOf('domChangedListener') !== -1) {
-          that.startDOMChangedListener();
-        }
+          // Choose wisely (or keep both?)
+          if (that.settings.observers.indexOf('mutationObserver') !== -1) {
+            that.startObserver();
+          }
+          if (that.settings.observers.indexOf('domChangedListener') !== -1) {
+            that.startDOMChangedListener();
+          }
 
-        // MathDisplay is ready
-        that.isReady = true;
+          // MathDisplay is ready
+          that.isReady = true;
 
-        // Update math content and resize
-        that.update(that.container, function() {
-          // TODO: Can't we bubble resizing via the Event Dispatcher?
-          that.parent.trigger('resize');
+          // Update math content and resize
+          that.update(that.container);
+        })
+        .catch(function(error) {
+          console.warn(error);
         });
-      });
     }
 
     /**
@@ -87,9 +90,12 @@ H5P.MathDisplay = (function () {
         }
         if (!found) {
           if (Array.isArray(params[param])) {
-            params[param].forEach(function (item) {
-              found = containsMath(item, found);
-            });
+            for (var i = 0; i < params[param].length; i++) {
+              found = containsMath(params[param][i], found);
+              if (found) {
+                break;
+              }
+            }
           }
           if (typeof params[param] === 'object') {
             found = containsMath(params[param], found);
@@ -202,19 +208,43 @@ H5P.MathDisplay = (function () {
       return;
     }
 
+    // Update was triggered after MathJax rendering, no further update needed
+    if (that.mathJaxHasRendered === true) {
+      that.mathJaxHasRendered = false;
+      return;
+    }
+
     // Default resize after MathJax has finished
     if (typeof callback === 'undefined') {
       callback = function () {
         // Resize interaction after there are no more DOM changes to expect by MathJax
-        if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
-          that.parent.trigger('resize');
-          // TODO: Wait for that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 instead
+
+        /**
+         * Wait until MathJax has finished rendering.
+         *
+         * @param {number} [counter=10] - Maximum number of retries.
+         * @param {number} [interval=50] - Wait time per poll in ms.
+         */
+        function waitForMathJaxDone (counter, interval) {
+          counter = counter || 10;
+          interval = interval || 50;
+
+          if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
+            that.mathJaxHasRendered = true;
+            that.parent.trigger('resize');
+          }
+          else if (counter > 0) {
+            setTimeout(waitForMathJaxDone, interval, --counter);
+          }
+          else {
+            // Will not wait any longer
+          }
         }
+
+        waitForMathJaxDone();
       };
     }
 
-    // TODO: setTimeout is only needed for the mutation observer to prevent infinite resize loops
-    //       Check if we can filter out resize events
     if (this.observer) {
       if (!this.updating) {
         this.updating = setTimeout(function () {
@@ -250,7 +280,7 @@ H5P.MathDisplay = (function () {
     return arguments[0];
   };
 
-  const MATHDISPLAY_COOLING_PERIOD = 0;
+  const MATHDISPLAY_COOLING_PERIOD = 50;
 
   return MathDisplay;
 }) ();
