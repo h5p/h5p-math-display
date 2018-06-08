@@ -192,9 +192,9 @@ H5P.MathDisplay = (function () {
       return;
     }
 
-    // Update was triggered after MathJax rendering, no further update needed
-    if (mathJaxHasRendered === true) {
-      mathJaxHasRendered = false;
+    // Update was triggered by resize triggered by MathJax, no update needed
+    if (that.mathJaxTriggeredResize === true) {
+      that.mathJaxTriggeredResize = false;
       return;
     }
 
@@ -205,23 +205,23 @@ H5P.MathDisplay = (function () {
 
         /**
          * Wait until MathJax has finished rendering.
+         * By default, will wait 10 seconds and check every 100ms if MathJax
+         * has finished
          *
-         * @param {number} [counter=10] - Maximum number of retries.
-         * @param {number} [interval=50] - Wait time per poll in ms.
+         * @param {number} [counter=100] - Maximum number of retries.
+         * @param {number} [interval=100] - Wait time per poll in ms.
          */
         function waitForMathJaxDone (counter, interval) {
-          counter = counter || 10;
-          interval = interval || 50;
+          counter = counter || 100;
+          interval = interval || 100;
 
-          if (mathjax.Hub.queue.running + mathjax.Hub.queue.pending === 0) {
-            mathJaxHasRendered = true;
-            H5P.instances[0].trigger('resize');
-          }
-          else if (counter > 0) {
-            setTimeout(waitForMathJaxDone, interval, --counter);
+          if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 || counter === 0) {
+            that.mathJaxTriggeredResize = true;
+            that.parent.trigger('resize');
           }
           else {
-            // Will not wait any longer
+            counter--;
+            setTimeout(waitForMathJaxDone, interval, counter);
           }
         }
 
@@ -230,12 +230,12 @@ H5P.MathDisplay = (function () {
     }
 
     // This branching isn't really necessary now, but it might become.
-    if (observer) {
-      if (!updating) {
-        updating = setTimeout(function () {
-          console.log('update MathJax');
-          mathjax.Hub.Queue(["Typeset", mathjax.Hub, elements], callback);
-          updating = null;
+    // The callback will be forwarded to MathJax
+    if (this.observer) {
+      if (!this.updating) {
+        that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+        this.updating = setTimeout(function () {
+          that.updating = null;
         }, MATHDISPLAY_COOLING_PERIOD);
       }
     }
@@ -245,7 +245,7 @@ H5P.MathDisplay = (function () {
   }
 
   // Will reduce polling of the MutationObserver
-  const MATHDISPLAY_COOLING_PERIOD = 0;
+  const MATHDISPLAY_COOLING_PERIOD = 100;
 
   //return MathDisplay;
 }) ();
