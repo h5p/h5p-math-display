@@ -9,19 +9,13 @@ H5P.MathDisplay = (function () {
    * Constructor.
    * adding the MathDisplay library and "new H5P.MathDisplay(this)" to a content type should be enough to make it work
    *
-   * @param {object} parent - Parent.
-   * @param {object} [params] - Params of library.
-   * @param {object} [container] - DOM object to use math on.
    * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
+   * @param {object} [settings.parent] - Parent.
+   * @param {object} [settings.params] - Params of library.
+   * @param {object} [settings.container] - DOM object to use math on.
    */
-  function MathDisplay (parent, params, container, settings) {
+  function MathDisplay (settings) {
     const that = this;
-
-    this.isReady = false;
-    this.mathjax = undefined;
-    this.observer = undefined;
-    this.parent = parent;
-    this.container = container || document.getElementsByClassName('h5p-container')[0];
 
     // See http://docs.mathjax.org/en/latest/options/index.html for options
     this.settings = this.extend(
@@ -40,12 +34,24 @@ H5P.MathDisplay = (function () {
       },
       settings || {}
     );
+
+    this.parent = this.settings.parent;
+    this.isReady = false;
+    this.mathjax = undefined;
+    this.observer = undefined;
     this.updating = null;
+
+    // Best effort if no container given
+    document.onreadystatechange = function () {
+      if ( document.readyState === 'complete' ) {
+        that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0];
+      }
+    };
 
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    if (!params || containsMath(params)) {
+    if (!this.settings.params || containsMath(this.settings.params)) {
       // Load MathJax dynamically
       // TODO: Make this ready for IE11, sigh
       getMathJax(that.settings.renderers.mathjax)
@@ -239,7 +245,13 @@ H5P.MathDisplay = (function () {
 
           if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 || counter === 0) {
             that.mathJaxTriggeredResize = true;
-            that.parent.trigger('resize');
+            if (that.parent) {
+              that.parent.trigger('resize');
+            }
+            else {
+              // Best effort to resize.
+              window.parent.dispatchEvent(new Event('resize'));
+            }
           }
           else {
             counter--;
@@ -289,7 +301,10 @@ H5P.MathDisplay = (function () {
   };
 
   // Will reduce polling of the MutationObserver
-  const MATHDISPLAY_COOLING_PERIOD = 100;
+  const MATHDISPLAY_COOLING_PERIOD = 50;
 
   return MathDisplay;
 }) ();
+
+// Fire up the MathDisplay with default params for now.
+new H5P.MathDisplay();
