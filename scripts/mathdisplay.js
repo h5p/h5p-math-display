@@ -7,7 +7,6 @@ H5P.MathDisplay = (function () {
   'use strict';
   /**
    * Constructor.
-   * adding the MathDisplay library and "new H5P.MathDisplay(this)" to a content type should be enough to make it work
    *
    * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
    * @param {object} [settings.parent] - Parent.
@@ -51,34 +50,32 @@ H5P.MathDisplay = (function () {
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    if (!this.settings.params || containsMath(this.settings.params)) {
-      // Load MathJax dynamically
-      // TODO: Make this ready for IE11, sigh
-      getMathJax(that.settings.renderers.mathjax)
-        .then(function(result) {
-          that.mathjax = result;
+    // Load MathJax dynamically
+    // TODO: Make this ready for IE11, sigh (Promise)
+    getMathJax(that.settings.renderers.mathjax)
+      .then(function(result) {
+        that.mathjax = result;
 
-          // Choose wisely (or keep both?)
-          if (that.settings.observers.indexOf('mutationObserver') !== -1) {
-            that.startObserver();
-          }
-          if (that.settings.observers.indexOf('domChangedListener') !== -1) {
-            that.startDOMChangedListener();
-          }
+        // Choose wisely (or keep both?)
+        if (that.settings.observers.indexOf('mutationObserver') !== -1) {
+          that.startObserver();
+        }
+        if (that.settings.observers.indexOf('domChangedListener') !== -1) {
+          that.startDOMChangedListener();
+        }
 
-          // MathDisplay is ready
-          that.isReady = true;
+        // MathDisplay is ready
+        that.isReady = true;
 
-          // Update math content and resize
-          that.update(that.container);
-        })
-        .catch(function(error) {
-          console.warn(error);
-        });
-    }
+        // Update math content and resize
+        that.update(that.container);
+      })
+      .catch(function(error) {
+        console.warn(error);
+      });
 
     /**
-     * Determine if params contain math.
+     * Determine if params contain math. Done in core now, so might be removed.
      *
      * @param {object} params - Parameters.
      * @param {boolean} [found] - used for recursion.
