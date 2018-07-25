@@ -22,7 +22,7 @@ H5P.MathDisplay = (function () {
         observers: ['mutationObserver', 'domChangedListener'],
         renderers: {
           mathjax: {
-            src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js',
+            src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
             config: {
               extensions: ['tex2jax.js'],
               jax: ['input/TeX','output/HTML-CSS'],
