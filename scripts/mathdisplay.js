@@ -17,17 +17,6 @@ H5P.MathDisplay = (function () {
     console.log('MathJax started');
     const that = this;
 
-    // Problem: Can't use H5P.getLibraryPath here because H5PIntegration is not yet set
-    // We could possibly change the order of script loading to change this, but
-    // then we'd still need to know our version number here.
-
-    // Option 1: Create function to getOptions from core (in whatever way it stores them)
-    // Defaults could be retrieved from library.json on first load, could also
-    // be changed in some H5P settings later
-
-    // Option 2: Make this library accept settings later (would work with MathJax at least)
-    // and let it be set to start/restart by core
-
     // See http://docs.mathjax.org/en/latest/options/index.html for options
     this.settings = this.extend(
       {
@@ -256,14 +245,15 @@ H5P.MathDisplay = (function () {
 
     this.observer = new MutationObserver(function (mutations) {
       // Filter out elements that have nothing to do with the inner HTML.
-      mutations = mutations.filter(function (mutation) {
-        return !mutation.target.id.startsWith('MathJax') &&
-          !mutation.target.className.startsWith('MathJax') &&
-          mutation.addedNodes.length > 0;
-      });
-      mutations.forEach(function(mutation) {
-        that.update(mutation.target);
-      });
+      mutations
+        .filter(function (mutation) {
+          return !mutation.target.id.startsWith('MathJax') &&
+            !mutation.target.className.startsWith('MathJax') &&
+            mutation.addedNodes.length > 0;
+        })
+        .forEach(function(mutation) {
+          that.update(mutation.target);
+        });
     });
 
     this.observer.observe(this.container, {childList: true});
