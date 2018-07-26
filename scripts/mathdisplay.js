@@ -16,125 +16,93 @@ H5P.MathDisplay = (function () {
     console.log('MathJax started');
     const that = this;
 
-    // See http://docs.mathjax.org/en/latest/options/index.html for options
-    this.settings = this.extend(
-      {
-        observers: [
-          {
-            name: 'mutationObserver',
-            params: {
-              cooldown: 50
-            }
-          },
-          {
-            name: 'domChangedListener'
-          },
-          {
-            name: 'interval',
-            params: {
-              time: 1000
-            }
-          }
-        ],
-        renderers: {
-          mathjax: {
-            src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
-            config: {
-              extensions: ['tex2jax.js'],
-              jax: ['input/TeX','output/HTML-CSS'],
-              messageStyle: 'none'
-            }
-          }
-        }
-      },
-      settings || {}
-    );
-
-    this.parent = this.settings.parent;
     this.isReady = false;
     this.mathjax = undefined;
     this.observer = undefined;
     this.updating = null;
 
-    // Best effort if no container given
-    document.onreadystatechange = function () {
-      if ( document.readyState === 'complete' ) {
-        that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0];
-      }
-    };
-
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    // Load MathJax dynamically
-    // TODO: Make this ready for IE11, sigh (Promise)
-    getMathJax(that.settings.renderers.mathjax)
-      .then(function(result) {
-        that.mathjax = result;
+    document.onreadystatechange = function () {
+      if ( document.readyState === 'complete' ) {
+        // Get settings from host
+        that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
 
-        // Start observers
-        that.settings.observers.forEach(function (observer) {
-          switch (observer.name) {
-            case 'mutationObserver':
-              that.startObserver(observer.params);
-              break;
-            case 'domChangedListener':
-              that.startDOMChangedListener(observer.params);
-              break;
-            case 'interval':
-              that.startIntervalUpdater(observer.params);
-              break;
-          }
-        });
-
-        // MathDisplay is ready
-        that.isReady = true;
-
-        // Update math content and resize
-        that.update(that.container);
-      })
-      .catch(function(error) {
-        console.warn(error);
-      });
-
-    /**
-     * Determine if params contain math. Done in core now, so might be removed.
-     *
-     * @param {object} params - Parameters.
-     * @param {boolean} [found] - used for recursion.
-     * @return {boolean} True, if params contain math.
-     */
-    function containsMath (params, found) {
-      found = found || false;
-
-      for (let param in params) {
-        if (typeof params[param] === 'string') {
-          /*
-           * $$ ... $$ LaTeX block
-           * \[ ... \] LaTeX block
-           * \( ... \) LaTeX inline
-           */
-          const mathPattern = /\$\$.+\$\$|\\\[.+\\\]|\\\(.+\\\)/g;
-          if (mathPattern.test(params[param])) {
-            found = true;
-            break;
-          }
+        // Set default observers if none configured. Will need tweaking.
+        if (!that.settings.observers || that.settings.observers.length === 0) {
+          that.settings = that.extend({
+            observers: [
+              {name: 'mutationObserver', params: {cooldown: 100}},
+              {name: 'domChangedListener'},
+              //{name: 'interval', params: {time: 1000}},
+            ]
+          }, that.settings);
         }
-        if (!found) {
-          if (Array.isArray(params[param])) {
-            for (var i = 0; i < params[param].length; i++) {
-              found = containsMath(params[param][i], found);
-              if (found) {
-                break;
+
+        // Set MathJax using CDN as default if no config given.
+        if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
+          that.settings = that.extend({
+            renderer: {
+              // See http://docs.mathjax.org/en/latest/options/index.html for options
+              mathjax: {
+                src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
+                config: {
+                  extensions: ['tex2jax.js'],
+                  jax: ['input/TeX','output/HTML-CSS'],
+                  messageStyle: 'none'
+                }
               }
             }
-          }
-          if (typeof params[param] === 'object') {
-            found = containsMath(params[param], found);
-          }
+          }, that.settings);
+        }
+
+        that.parent = that.settings.parent;
+        that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0];
+
+        if (that.settings.renderer.mathjax) {
+          // Load MathJax dynamically
+          // It might be faster to start loading MathJax earlier, but
+          // in that case we need a mechanism to detect the availability of
+          // H5PIntegration for getting the source.
+          // TODO: Make this ready for IE11, sigh (Promise)
+          getMathJax(that.settings.renderer.mathjax)
+            .then(function(result) {
+              that.mathjax = result;
+
+              startObservers();
+            })
+            .catch(function(error) {
+              console.warn(error);
+            });
         }
       }
-      return found;
+    };
+
+    /**
+     * Start observers.
+     */
+    function startObservers () {
+      // Start observers
+      that.settings.observers.forEach(function (observer) {
+        switch (observer.name) {
+          case 'mutationObserver':
+            that.startMutationObserver(observer.params);
+            break;
+          case 'domChangedListener':
+            that.startDOMChangedListener(observer.params);
+            break;
+          case 'interval':
+            that.startIntervalUpdater(observer.params);
+            break;
+        }
+      });
+
+      // MathDisplay is ready
+      that.isReady = true;
+
+      // Update math content and resize
+      that.update(that.container);
     }
 
     /**
@@ -235,7 +203,7 @@ H5P.MathDisplay = (function () {
    * @param {object} params - Paremeters.
    * @param {number} params.cooldown - Cooldown period.
    */
-  MathDisplay.prototype.startObserver = function (params) {
+  MathDisplay.prototype.startMutationObserver = function (params) {
     const that = this;
 
     if (!this.container) {
