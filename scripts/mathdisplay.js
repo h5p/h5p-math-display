@@ -14,12 +14,40 @@ H5P.MathDisplay = (function () {
    * @param {object} [settings.container] - DOM object to use math on.
    */
   function MathDisplay (settings) {
+    console.log('MathJax started');
     const that = this;
+
+    // Problem: Can't use H5P.getLibraryPath here because H5PIntegration is not yet set
+    // We could possibly change the order of script loading to change this, but
+    // then we'd still need to know our version number here.
+
+    // Option 1: Create function to getOptions from core (in whatever way it stores them)
+    // Defaults could be retrieved from library.json on first load, could also
+    // be changed in some H5P settings later
+
+    // Option 2: Make this library accept settings later (would work with MathJax at least)
+    // and let it be set to start/restart by core
 
     // See http://docs.mathjax.org/en/latest/options/index.html for options
     this.settings = this.extend(
       {
-        observers: ['mutationObserver', 'domChangedListener', 'interval'],
+        observers: [
+          {
+            name: 'mutationObserver',
+            params: {
+              cooldown: 50
+            }
+          },
+          {
+            name: 'domChangedListener'
+          },
+          {
+            name: 'interval',
+            params: {
+              time: 500
+            }
+          }
+        ],
         renderers: {
           mathjax: {
             src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
@@ -29,9 +57,6 @@ H5P.MathDisplay = (function () {
               messageStyle: 'none'
             }
           }
-        },
-        interval: {
-          time: 500
         }
       },
       settings || {}
@@ -59,16 +84,20 @@ H5P.MathDisplay = (function () {
       .then(function(result) {
         that.mathjax = result;
 
-        // Choose wisely (or keep both?)
-        if (that.settings.observers.indexOf('mutationObserver') !== -1) {
-          that.startObserver();
-        }
-        if (that.settings.observers.indexOf('domChangedListener') !== -1) {
-          that.startDOMChangedListener();
-        }
-        if (that.settings.observers.indexOf('interval') !== -1) {
-          that.startIntervalUpdater(that.settings.interval.time);
-        }
+        // Start observers
+        that.settings.observers.forEach(function (observer) {
+          switch (observer.name) {
+            case 'mutationObserver':
+              that.startObserver(observer.params);
+              break;
+            case 'domChangedListener':
+              that.startDOMChangedListener(observer.params);
+              break;
+            case 'interval':
+              that.startIntervalUpdater(observer.params);
+              break;
+          }
+        });
 
         // MathDisplay is ready
         that.isReady = true;
@@ -176,8 +205,10 @@ H5P.MathDisplay = (function () {
 
   /**
    * Start domChangedListener.
+   *
+   * @param {object} params - Parameters.
    */
-  MathDisplay.prototype.startDOMChangedListener = function () {
+  MathDisplay.prototype.startDOMChangedListener = function (params) {
     const that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
@@ -186,25 +217,42 @@ H5P.MathDisplay = (function () {
 
   /**
    * Start interval updater.
+   *
+   * @param {object} params - Parameters.
+   * @param {number} params.time - Interval time.
    */
-  MathDisplay.prototype.startIntervalUpdater = function (interval) {
+  MathDisplay.prototype.startIntervalUpdater = function (params) {
     const that = this;
 
-    setTimeout(function() {
-      that.update(document);
-      that.startIntervalUpdater(interval)
-    }, interval);
+    /**
+     * Update math display in regular intervals.
+     *
+     * @param {number} time - Interval time.
+     */
+    function intervalUpdate (time) {
+      setTimeout(function() {
+        that.update(document);
+        intervalUpdate(time);
+      }, time);
+    }
+
+    intervalUpdate(params.time);
   };
 
   /**
    * Start mutation observer.
+   *
+   * @param {object} params - Paremeters.
+   * @param {number} params.cooldown - Cooldown period.
    */
-  MathDisplay.prototype.startObserver = function () {
+  MathDisplay.prototype.startObserver = function (params) {
     const that = this;
 
     if (!this.container) {
       return false;
     }
+
+    this.mutationCoolingPeriod = params.cooldown;
 
     this.observer = new MutationObserver(function (mutations) {
       // Filter out elements that have nothing to do with the inner HTML.
@@ -285,7 +333,7 @@ H5P.MathDisplay = (function () {
         that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
         this.updating = setTimeout(function () {
           that.updating = null;
-        }, MATHDISPLAY_COOLING_PERIOD);
+        }, this.mutationCoolingPeriod);
       }
     }
     else {
@@ -315,11 +363,8 @@ H5P.MathDisplay = (function () {
     return arguments[0];
   };
 
-  // Will reduce polling of the MutationObserver
-  const MATHDISPLAY_COOLING_PERIOD = 50;
-
   return MathDisplay;
 }) ();
 
-// Fire up the MathDisplay with default params for now.
+// Fire up the MathDisplay
 new H5P.MathDisplay();
