@@ -28,10 +28,10 @@ H5P.MathDisplay = (function () {
               jax: ['input/TeX','output/HTML-CSS'],
               messageStyle: 'none'
             }
-          },
-          interval: {
-            time: 500
           }
+        },
+        interval: {
+          time: 500
         }
       },
       settings || {}
@@ -67,7 +67,7 @@ H5P.MathDisplay = (function () {
           that.startDOMChangedListener();
         }
         if (that.settings.observers.indexOf('interval') !== -1) {
-          that.startIntervalUpdater(that.settings.renderers.interval.time);
+          that.startIntervalUpdater(that.settings.interval.time);
         }
 
         // MathDisplay is ready
