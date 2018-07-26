@@ -1,4 +1,4 @@
-/* globals MathJax, console */
+/* globals MathJax, console, H5PIntegration */
 
 var H5P = H5P || {};
 
@@ -7,13 +7,8 @@ H5P.MathDisplay = (function () {
   'use strict';
   /**
    * Constructor.
-   *
-   * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
-   * @param {object} [settings.parent] - Parent.
-   * @param {object} [settings.container] - DOM object to use math on.
    */
-  function MathDisplay (settings) {
-    console.log('MathJax started');
+  function MathDisplay () {
     const that = this;
 
     this.isReady = false;
@@ -243,8 +238,8 @@ H5P.MathDisplay = (function () {
     }
 
     // Update was triggered by resize triggered by MathJax, no update needed
-    if (that.mathJaxTriggeredResize === true) {
-      that.mathJaxTriggeredResize = false;
+    if (this.mathJaxTriggeredResize === true) {
+      this.mathJaxTriggeredResize = false;
       return;
     }
 
@@ -285,23 +280,22 @@ H5P.MathDisplay = (function () {
       };
     }
 
-    // This branching isn't really necessary now, but it might become.
     // The callback will be forwarded to MathJax
     if (this.observer) {
       if (!this.updating) {
-        that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+        this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         this.updating = setTimeout(function () {
           that.updating = null;
         }, this.mutationCoolingPeriod);
       }
     }
     else {
-      that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+      this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
     }
   };
 
   /**
-   * Extend an array just like JQuery's extend.
+   * Extend an array just like jQuery's extend.
    * @param {...Object} arguments - Objects to be merged.
    * @return {Object} Merged objects.
    */
