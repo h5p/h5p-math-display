@@ -19,7 +19,7 @@ H5P.MathDisplay = (function () {
     // See http://docs.mathjax.org/en/latest/options/index.html for options
     this.settings = this.extend(
       {
-        observers: ['mutationObserver', 'domChangedListener'],
+        observers: ['mutationObserver', 'domChangedListener', 'interval'],
         renderers: {
           mathjax: {
             src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
@@ -28,6 +28,9 @@ H5P.MathDisplay = (function () {
               jax: ['input/TeX','output/HTML-CSS'],
               messageStyle: 'none'
             }
+          },
+          interval: {
+            time: 500
           }
         }
       },
@@ -62,6 +65,9 @@ H5P.MathDisplay = (function () {
         }
         if (that.settings.observers.indexOf('domChangedListener') !== -1) {
           that.startDOMChangedListener();
+        }
+        if (that.settings.observers.indexOf('interval') !== -1) {
+          that.startIntervalUpdater(that.settings.renderers.interval.time);
         }
 
         // MathDisplay is ready
@@ -176,6 +182,18 @@ H5P.MathDisplay = (function () {
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
     });
+  };
+
+  /**
+   * Start interval updater.
+   */
+  MathDisplay.prototype.startIntervalUpdater = function (interval) {
+    const that = this;
+
+    setTimeout(function() {
+      that.update(document);
+      that.startIntervalUpdater(interval)
+    }, interval);
   };
 
   /**
