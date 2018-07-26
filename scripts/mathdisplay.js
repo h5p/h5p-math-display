@@ -10,7 +10,6 @@ H5P.MathDisplay = (function () {
    *
    * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
    * @param {object} [settings.parent] - Parent.
-   * @param {object} [settings.params] - Params of library.
    * @param {object} [settings.container] - DOM object to use math on.
    */
   function MathDisplay (settings) {
@@ -33,7 +32,7 @@ H5P.MathDisplay = (function () {
           {
             name: 'interval',
             params: {
-              time: 500
+              time: 1000
             }
           }
         ],
@@ -220,7 +219,9 @@ H5P.MathDisplay = (function () {
      */
     function intervalUpdate (time) {
       setTimeout(function() {
-        that.update(document);
+        if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
+          that.update(document);
+        }
         intervalUpdate(time);
       }, time);
     }
