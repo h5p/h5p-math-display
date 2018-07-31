@@ -59,6 +59,10 @@ H5P.MathDisplay = (function () {
               config: {
                 extensions: ['tex2jax.js'],
                 jax: ['input/TeX','output/HTML-CSS'],
+                tex2jax: {
+                  // Important, otherwise MathJax will be rendered inside CKEditor
+                  ignoreClass: "ckeditor"
+                },
                 messageStyle: 'none'
               }
             }
