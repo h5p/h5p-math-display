@@ -9,6 +9,7 @@ H5P.MathDisplay = (function () {
    * Constructor.
    */
   function MathDisplay () {
+    console.log('MathDisplay running');
     const that = this;
 
     this.isReady = false;
@@ -19,60 +20,75 @@ H5P.MathDisplay = (function () {
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    document.onreadystatechange = function () {
-      if ( document.readyState === 'complete' ) {
-        // Get settings from host
-        that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
-
-        // Set default observers if none configured. Will need tweaking.
-        if (!that.settings.observers || that.settings.observers.length === 0) {
-          that.settings = that.extend({
-            observers: [
-              {name: 'mutationObserver', params: {cooldown: 100}},
-              {name: 'domChangedListener'},
-              //{name: 'interval', params: {time: 1000}},
-            ]
-          }, that.settings);
+    // Initialize MathDisplay if document has loaded (and H5PIntegration is set)
+    if (document.readyState === 'complete') {
+      initialize();
+    }
+    else {
+      document.onreadystatechange = function () {
+        if (document.readyState === 'complete') {
+          initialize();
         }
+      };
+    }
 
-        // Set MathJax using CDN as default if no config given.
-        if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
-          that.settings = that.extend({
-            renderer: {
-              // See http://docs.mathjax.org/en/latest/options/index.html for options
-              mathjax: {
-                src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
-                config: {
-                  extensions: ['tex2jax.js'],
-                  jax: ['input/TeX','output/HTML-CSS'],
-                  messageStyle: 'none'
-                }
+    /**
+     * Initialize MathDisplay with settings that host may have set in ENV
+     */
+    function initialize () {
+      // Get settings from host
+      that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
+
+      // Set default observers if none configured. Will need tweaking.
+      if (!that.settings.observers || that.settings.observers.length === 0) {
+        that.settings = that.extend({
+          observers: [
+            {name: 'mutationObserver', params: {cooldown: 100}},
+            {name: 'domChangedListener'},
+            //{name: 'interval', params: {time: 1000}},
+          ]
+        }, that.settings);
+      }
+
+      // Set MathJax using CDN as default if no config given.
+      if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
+        that.settings = that.extend({
+          renderer: {
+            // See http://docs.mathjax.org/en/latest/options/index.html for options
+            mathjax: {
+              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
+              config: {
+                extensions: ['tex2jax.js'],
+                jax: ['input/TeX','output/HTML-CSS'],
+                messageStyle: 'none'
               }
             }
-          }, that.settings);
-        }
-
-        that.parent = that.settings.parent;
-        that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0];
-
-        if (that.settings.renderer.mathjax) {
-          // Load MathJax dynamically
-          // It might be faster to start loading MathJax earlier, but
-          // in that case we need a mechanism to detect the availability of
-          // H5PIntegration for getting the source.
-          // TODO: Make this ready for IE11, sigh (Promise)
-          getMathJax(that.settings.renderer.mathjax)
-            .then(function(result) {
-              that.mathjax = result;
-
-              startObservers();
-            })
-            .catch(function(error) {
-              console.warn(error);
-            });
-        }
+          }
+        }, that.settings);
       }
-    };
+
+      that.parent = that.settings.parent;
+
+      // If h5p-container is not set, we're in an editor that may still be loading, hence document
+      that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0] || document;
+
+      if (that.settings.renderer.mathjax) {
+        // Load MathJax dynamically
+        // It might be faster to start loading MathJax earlier, but
+        // in that case we need a mechanism to detect the availability of
+        // H5PIntegration for getting the source.
+        // TODO: Make this ready for IE11, sigh (Promise)
+        getMathJax(that.settings.renderer.mathjax)
+          .then(function(result) {
+            that.mathjax = result;
+
+            startObservers();
+          })
+          .catch(function(error) {
+            console.warn(error);
+          });
+      }
+    }
 
     /**
      * Start observers.
