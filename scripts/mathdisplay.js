@@ -227,8 +227,8 @@ H5P.MathDisplay = (function () {
       // Filter out elements that have nothing to do with the inner HTML.
       mutations
         .filter(function (mutation) {
-          return !mutation.target.id.startsWith('MathJax') &&
-            !mutation.target.className.startsWith('MathJax') &&
+          return mutation.target.id.indexOf('MathJax') !== 0 &&
+            mutation.target.className.indexOf('MathJax') !== 0 &&
             mutation.addedNodes.length > 0;
         })
         .forEach(function(mutation) {
