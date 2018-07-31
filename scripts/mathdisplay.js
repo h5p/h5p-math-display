@@ -220,7 +220,7 @@ H5P.MathDisplay = (function () {
         });
     });
 
-    this.observer.observe(this.container, {childList: true});
+    this.observer.observe(this.container, {childList: true, subtree: true});
     return true;
   };
 
