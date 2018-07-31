@@ -42,7 +42,7 @@ H5P.MathDisplay = (function () {
       if (!that.settings.observers || that.settings.observers.length === 0) {
         that.settings = that.extend({
           observers: [
-            {name: 'mutationObserver', params: {cooldown: 100}},
+            {name: 'mutationObserver', params: {cooldown: 300}},
             {name: 'domChangedListener'},
             //{name: 'interval', params: {time: 1000}},
           ]
@@ -233,6 +233,7 @@ H5P.MathDisplay = (function () {
         .filter(function (mutation) {
           return mutation.target.id.indexOf('MathJax') !== 0 &&
             mutation.target.className.indexOf('MathJax') !== 0 &&
+            mutation.target.tagName !== 'HEAD' &&
             mutation.addedNodes.length > 0;
         })
         .forEach(function(mutation) {
