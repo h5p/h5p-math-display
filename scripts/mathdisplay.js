@@ -19,7 +19,12 @@ H5P.MathDisplay = (function () {
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    // Initialize MathDisplay if document has loaded (and H5PIntegration is set)
+    /*
+     * Initialize MathDisplay if document has loaded and thus H5PIntegration is set.
+     * It might be faster to start loading MathJax/the renderer earlier, but in that
+     * case we need a mechanism to detect the availability of H5PIntegration for
+     * getting the source.
+     */
     if (document.readyState === 'complete') {
       initialize();
     }
@@ -77,9 +82,6 @@ H5P.MathDisplay = (function () {
 
       if (that.settings.renderer.mathjax) {
         // Load MathJax dynamically
-        // It might be faster to start loading MathJax earlier, but
-        // in that case we need a mechanism to detect the availability of
-        // H5PIntegration for getting the source.
         getMathJax(that.settings.renderer.mathjax, function(mathjax, error) {
           if (error) {
             console.warn(error);
@@ -87,17 +89,25 @@ H5P.MathDisplay = (function () {
           }
 
           that.mathjax = mathjax;
-          startObservers();
+          startObservers(that.settings.observers);
+
+          // MathDisplay is ready
+          that.isReady = true;
+
+          // Update math content and resize
+          that.update(that.container);
         });
       }
     }
 
     /**
      * Start observers.
+     *
+     * @param {object[]} observers - Observers to be used.
      */
-    function startObservers () {
+    function startObservers (observers) {
       // Start observers
-      that.settings.observers.forEach(function (observer) {
+      observers.forEach(function (observer) {
         switch (observer.name) {
           case 'mutationObserver':
             that.startMutationObserver(observer.params);
@@ -110,23 +120,17 @@ H5P.MathDisplay = (function () {
             break;
         }
       });
-
-      // MathDisplay is ready
-      that.isReady = true;
-
-      // Update math content and resize
-      that.update(that.container);
     }
 
     /**
-     * Wait until MathJax has been loaded.
+     * Wait until MathJax has been loaded. Maximum of 5 seconds by default.
      *
      * @param {function} callback - Callback with params {object} mathjax and {string} error.
-     * @param {number} [counter=10] - Maximum number of retries.
+     * @param {number} [counter=50] - Maximum number of retries.
      * @param {number} [interval=100] - Wait time per poll in ms.
      */
     function waitForMathJax (callback, counter, interval) {
-      counter = counter || 10;
+      counter = counter || 50;
       interval = interval || 100;
 
       if (typeof MathJax !== 'undefined') {
@@ -141,14 +145,14 @@ H5P.MathDisplay = (function () {
     }
 
     /**
-     * Get promise for MathJax availability.
+     * Get MathJax if available.
      *
      * For MathJax in-line-configuration options cmp.
      * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
      *
      * @param {object} settings - MathJax in-line configuration options.
-     * @param {object} callback - Callback function.
-     * @return {object} Callback with params {object} mathjax and {string} error.
+     * @param {function} callback - Callback function.
+     * @return {function} Callback with params {object} mathjax and {string} error.
      */
     function getMathJax (settings, callback) {
       // Add MathJax script to document
@@ -177,13 +181,15 @@ H5P.MathDisplay = (function () {
   /**
    * Start domChangedListener.
    *
-   * @param {object} params - Parameters.
+   * @param {object} params - Parameters. Currently not used.
+   * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startDOMChangedListener = function (params) {
     const that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
     });
+    return true;
   };
 
   /**
@@ -191,9 +197,14 @@ H5P.MathDisplay = (function () {
    *
    * @param {object} params - Parameters.
    * @param {number} params.time - Interval time.
+   * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startIntervalUpdater = function (params) {
     const that = this;
+
+    if (!params || !params.time) {
+      return false;
+    }
 
     /**
      * Update math display in regular intervals.
@@ -210,6 +221,8 @@ H5P.MathDisplay = (function () {
     }
 
     intervalUpdate(params.time);
+
+    return true;
   };
 
   /**
@@ -217,6 +230,7 @@ H5P.MathDisplay = (function () {
    *
    * @param {object} params - Paremeters.
    * @param {number} params.cooldown - Cooldown period.
+   * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startMutationObserver = function (params) {
     const that = this;
