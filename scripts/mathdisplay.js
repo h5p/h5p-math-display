@@ -9,7 +9,6 @@ H5P.MathDisplay = (function () {
    * Constructor.
    */
   function MathDisplay () {
-    console.log('MathDisplay running');
     const that = this;
 
     this.isReady = false;
@@ -298,11 +297,26 @@ H5P.MathDisplay = (function () {
 
     // The callback will be forwarded to MathJax
     if (this.observer) {
+      /*
+       * For speed reasons, we only add the elements to MathJax's queue that
+       * have been passed by the mutation observer instead of always parsing
+       * the complete document. We could always put everything on MathJax's queue
+       * and let it work doen the queue, but this can become pretty slow.
+       * Instead, we use the cooldown period to ignore further elements.
+       * If elements may have been missed, we once update the complete document.
+       */
       if (!this.updating) {
+        if (this.missedUpdates) {
+          this.missedSingleUpdates = false;
+          elements = document;
+        }
         this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         this.updating = setTimeout(function () {
           that.updating = null;
         }, this.mutationCoolingPeriod);
+      }
+      else {
+        this.missedUpdates = true;
       }
     }
     else {
