@@ -76,16 +76,15 @@ H5P.MathDisplay = (function () {
         // It might be faster to start loading MathJax earlier, but
         // in that case we need a mechanism to detect the availability of
         // H5PIntegration for getting the source.
-        // TODO: Make this ready for IE11, sigh (Promise)
-        getMathJax(that.settings.renderer.mathjax)
-          .then(function(result) {
-            that.mathjax = result;
-
-            startObservers();
-          })
-          .catch(function(error) {
+        getMathJax(that.settings.renderer.mathjax, function(mathjax, error) {
+          if (error) {
             console.warn(error);
-          });
+            return;
+          }
+
+          that.mathjax = mathjax;
+          startObservers();
+        });
       }
     }
 
@@ -118,34 +117,36 @@ H5P.MathDisplay = (function () {
     /**
      * Wait until MathJax has been loaded.
      *
-     * @param {function} resolve - Function on success.
-     * @param {function} reject - Function on failure.
+     * @param {function} callback - Callback with params {object} mathjax and {string} error.
      * @param {number} [counter=10] - Maximum number of retries.
      * @param {number} [interval=100] - Wait time per poll in ms.
      */
-    function waitForMathJax (resolve, reject, counter, interval) {
+    function waitForMathJax (callback, counter, interval) {
       counter = counter || 10;
       interval = interval || 100;
 
       if (typeof MathJax !== 'undefined') {
-        return(resolve(MathJax));
+        callback(MathJax);
       }
       else if (counter > 0) {
-        setTimeout(waitForMathJax, interval, resolve, reject, --counter);
+        setTimeout(waitForMathJax, interval, callback, --counter);
       }
       else {
-        return(reject('Could not start MathJax'));
+        callback(undefined, 'Could not load MathJax');
       }
     }
 
     /**
      * Get promise for MathJax availability.
      *
-     * @param {object} settings - Settings.
-     * @param {string} settings.src - Source, e.g. CDN.
-     * @return {Promise} Promise for MathJax availability.
+     * For MathJax in-line-configuration options cmp.
+     * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
+     *
+     * @param {object} settings - MathJax in-line configuration options.
+     * @param {object} callback - Callback function.
+     * @return {object} Callback with params {object} mathjax and {string} error.
      */
-    function getMathJax (settings) {
+    function getMathJax (settings, callback) {
       // Add MathJax script to document
       const script = document.createElement('script');
       script.type = 'text/javascript';
@@ -161,7 +162,7 @@ H5P.MathDisplay = (function () {
       }
       document.getElementsByTagName('head')[0].appendChild(script);
 
-      return new Promise(waitForMathJax);
+      return waitForMathJax(callback);
     }
   }
 
