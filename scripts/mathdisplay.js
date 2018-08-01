@@ -47,7 +47,7 @@ H5P.MathDisplay = (function () {
       if (!that.settings.observers || that.settings.observers.length === 0) {
         that.settings = that.extend({
           observers: [
-            {name: 'mutationObserver', params: {cooldown: 300}},
+            {name: 'mutationObserver', params: {cooldown: 500}},
             {name: 'domChangedListener'},
             //{name: 'interval', params: {time: 1000}},
           ]
