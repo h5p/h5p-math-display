@@ -9,7 +9,7 @@ H5P.MathDisplay = (function () {
    * Constructor.
    */
   function MathDisplay () {
-    const that = this;
+    var that = this;
 
     this.isReady = false;
     this.mathjax = undefined;
@@ -156,12 +156,12 @@ H5P.MathDisplay = (function () {
      */
     function getMathJax (settings, callback) {
       // Add MathJax script to document
-      const script = document.createElement('script');
+      var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = settings.src;
 
       // Fallback for some versions of Opera.
-      const config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
+      var config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
       if (window.opera) {
         script.innerHTML = config;
       }
@@ -185,7 +185,7 @@ H5P.MathDisplay = (function () {
    * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startDOMChangedListener = function (params) {
-    const that = this;
+    var that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
     });
@@ -200,7 +200,7 @@ H5P.MathDisplay = (function () {
    * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startIntervalUpdater = function (params) {
-    const that = this;
+    var that = this;
 
     if (!params || !params.time) {
       return false;
@@ -233,7 +233,7 @@ H5P.MathDisplay = (function () {
    * @return {boolean} True if observer could be started, else false.
    */
   MathDisplay.prototype.startMutationObserver = function (params) {
-    const that = this;
+    var that = this;
 
     if (!this.container) {
       return false;
@@ -266,7 +266,7 @@ H5P.MathDisplay = (function () {
    * @param {object} [callback] - Callback function.
    */
   MathDisplay.prototype.update = function (elements, callback) {
-    const that = this;
+    var that = this;
 
     if (!this.isReady) {
       return;
