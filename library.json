@@ -10,11 +10,22 @@
   "runnable": 0,
   "coreApi": {
     "majorVersion": 1,
-    "minorVersion": 4
+    "minorVersion": 16
   },
   "preloadedJs": [
     {
       "path": "scripts/mathdisplay.js"
     }
-  ]
+  ],
+  "addTo": {
+    "content": {
+      "types": [
+        {
+          "text": {
+            "regex": "/\\$\\$.+\\$\\$|\\\\[.+\\\\]|\\\\(.+\\\\)/"
+          }
+        }
+      ]
+    }
+  }
 }

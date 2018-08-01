@@ -1,4 +1,4 @@
-/* globals MathJax, console */
+/* globals MathJax, console, H5PIntegration */
 
 var H5P = H5P || {};
 
@@ -7,148 +7,161 @@ H5P.MathDisplay = (function () {
   'use strict';
   /**
    * Constructor.
-   * adding the MathDisplay library and "new H5P.MathDisplay(this)" to a content type should be enough to make it work
-   *
-   * @param {object} parent - Parent.
-   * @param {object} [params] - Params of library.
-   * @param {object} [container] - DOM object to use math on.
-   * @param {object} [settings] - Optional settings (e.g. for choosing renderer).
    */
-  function MathDisplay (parent, params, container, settings) {
-    const that = this;
+  function MathDisplay () {
+    var that = this;
 
     this.isReady = false;
     this.mathjax = undefined;
     this.observer = undefined;
-    this.parent = parent;
-    this.container = container || document.getElementsByClassName('h5p-container')[0];
-
-    // See http://docs.mathjax.org/en/latest/options/index.html for options
-    this.settings = this.extend(
-      {
-        observers: ['mutationObserver', 'domChangedListener'],
-        renderers: {
-          mathjax: {
-            src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js',
-            config: {
-              extensions: ['tex2jax.js'],
-              jax: ['input/TeX','output/HTML-CSS'],
-              messageStyle: 'none'
-            }
-          }
-        }
-      },
-      settings || {}
-    );
     this.updating = null;
 
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
 
-    if (!params || containsMath(params)) {
-      // Load MathJax dynamically
-      // TODO: Make this ready for IE11, sigh
-      getMathJax(that.settings.renderers.mathjax)
-        .then(function(result) {
-          that.mathjax = result;
+    /*
+     * Initialize MathDisplay if document has loaded and thus H5PIntegration is set.
+     * It might be faster to start loading MathJax/the renderer earlier, but in that
+     * case we need a mechanism to detect the availability of H5PIntegration for
+     * getting the source.
+     */
+    if (document.readyState === 'complete') {
+      initialize();
+    }
+    else {
+      document.onreadystatechange = function () {
+        if (document.readyState === 'complete') {
+          initialize();
+        }
+      };
+    }
 
-          // Choose wisely (or keep both?)
-          if (that.settings.observers.indexOf('mutationObserver') !== -1) {
-            that.startObserver();
+    /**
+     * Initialize MathDisplay with settings that host may have set in ENV
+     */
+    function initialize () {
+      // Get settings from host
+      that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
+
+      // Set default observers if none configured. Will need tweaking.
+      if (!that.settings.observers || that.settings.observers.length === 0) {
+        that.settings = that.extend({
+          observers: [
+            {name: 'mutationObserver', params: {cooldown: 500}},
+            {name: 'domChangedListener'},
+            //{name: 'interval', params: {time: 1000}},
+          ]
+        }, that.settings);
+      }
+
+      // Set MathJax using CDN as default if no config given.
+      if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
+        that.settings = that.extend({
+          renderer: {
+            // See http://docs.mathjax.org/en/latest/options/index.html for options
+            mathjax: {
+              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
+              config: {
+                extensions: ['tex2jax.js'],
+                jax: ['input/TeX','output/HTML-CSS'],
+                tex2jax: {
+                  // Important, otherwise MathJax will be rendered inside CKEditor
+                  ignoreClass: "ckeditor"
+                },
+                messageStyle: 'none'
+              }
+            }
           }
-          if (that.settings.observers.indexOf('domChangedListener') !== -1) {
-            that.startDOMChangedListener();
+        }, that.settings);
+      }
+
+      that.parent = that.settings.parent;
+
+      // If h5p-container is not set, we're in an editor that may still be loading, hence document
+      that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0] || document;
+
+      if (that.settings.renderer.mathjax) {
+        // Load MathJax dynamically
+        getMathJax(that.settings.renderer.mathjax, function(mathjax, error) {
+          if (error) {
+            console.warn(error);
+            return;
           }
+
+          that.mathjax = mathjax;
+          startObservers(that.settings.observers);
 
           // MathDisplay is ready
           that.isReady = true;
 
           // Update math content and resize
           that.update(that.container);
-        })
-        .catch(function(error) {
-          console.warn(error);
         });
-    }
-
-    /**
-     * Determine if params contain math.
-     *
-     * @param {object} params - Parameters.
-     * @param {boolean} [found] - used for recursion.
-     * @return {boolean} True, if params contain math.
-     */
-    function containsMath (params, found) {
-      found = found || false;
-
-      for (let param in params) {
-        if (typeof params[param] === 'string') {
-          /*
-           * $$ ... $$ LaTeX block
-           * \[ ... \] LaTeX block
-           * \( ... \) LaTeX inline
-           */
-          const mathPattern = /\$\$.+\$\$|\\\[.+\\\]|\\\(.+\\\)/g;
-          if (mathPattern.test(params[param])) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          if (Array.isArray(params[param])) {
-            for (var i = 0; i < params[param].length; i++) {
-              found = containsMath(params[param][i], found);
-              if (found) {
-                break;
-              }
-            }
-          }
-          if (typeof params[param] === 'object') {
-            found = containsMath(params[param], found);
-          }
-        }
       }
-      return found;
     }
 
     /**
-     * Wait until MathJax has been loaded.
+     * Start observers.
      *
-     * @param {function} resolve - Function on success.
-     * @param {function} reject - Function on failure.
-     * @param {number} [counter=10] - Maximum number of retries.
+     * @param {object[]} observers - Observers to be used.
+     */
+    function startObservers (observers) {
+      // Start observers
+      observers.forEach(function (observer) {
+        switch (observer.name) {
+          case 'mutationObserver':
+            that.startMutationObserver(observer.params);
+            break;
+          case 'domChangedListener':
+            that.startDOMChangedListener(observer.params);
+            break;
+          case 'interval':
+            that.startIntervalUpdater(observer.params);
+            break;
+        }
+      });
+    }
+
+    /**
+     * Wait until MathJax has been loaded. Maximum of 5 seconds by default.
+     *
+     * @param {function} callback - Callback with params {object} mathjax and {string} error.
+     * @param {number} [counter=50] - Maximum number of retries.
      * @param {number} [interval=100] - Wait time per poll in ms.
      */
-    function waitForMathJax (resolve, reject, counter, interval) {
-      counter = counter || 10;
+    function waitForMathJax (callback, counter, interval) {
+      counter = counter || 50;
       interval = interval || 100;
 
       if (typeof MathJax !== 'undefined') {
-        return(resolve(MathJax));
+        callback(MathJax);
       }
       else if (counter > 0) {
-        setTimeout(waitForMathJax, interval, resolve, reject, --counter);
+        setTimeout(waitForMathJax, interval, callback, --counter);
       }
       else {
-        return(reject('Could not start MathJax'));
+        callback(undefined, 'Could not load MathJax');
       }
     }
 
     /**
-     * Get promise for MathJax availability.
+     * Get MathJax if available.
      *
-     * @param {object} settings - Settings.
-     * @param {string} settings.src - Source, e.g. CDN.
-     * @return {Promise} Promise for MathJax availability.
+     * For MathJax in-line-configuration options cmp.
+     * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
+     *
+     * @param {object} settings - MathJax in-line configuration options.
+     * @param {function} callback - Callback function.
+     * @return {function} Callback with params {object} mathjax and {string} error.
      */
-    function getMathJax (settings) {
+    function getMathJax (settings, callback) {
       // Add MathJax script to document
-      const script = document.createElement('script');
+      var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = settings.src;
 
       // Fallback for some versions of Opera.
-      const config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
+      var config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
       if (window.opera) {
         script.innerHTML = config;
       }
@@ -157,7 +170,7 @@ H5P.MathDisplay = (function () {
       }
       document.getElementsByTagName('head')[0].appendChild(script);
 
-      return new Promise(waitForMathJax);
+      return waitForMathJax(callback);
     }
   }
 
@@ -167,37 +180,82 @@ H5P.MathDisplay = (function () {
 
   /**
    * Start domChangedListener.
+   *
+   * @param {object} params - Parameters. Currently not used.
+   * @return {boolean} True if observer could be started, else false.
    */
-  MathDisplay.prototype.startDOMChangedListener = function () {
-    const that = this;
+  MathDisplay.prototype.startDOMChangedListener = function (params) {
+    var that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
     });
+    return true;
+  };
+
+  /**
+   * Start interval updater.
+   *
+   * @param {object} params - Parameters.
+   * @param {number} params.time - Interval time.
+   * @return {boolean} True if observer could be started, else false.
+   */
+  MathDisplay.prototype.startIntervalUpdater = function (params) {
+    var that = this;
+
+    if (!params || !params.time) {
+      return false;
+    }
+
+    /**
+     * Update math display in regular intervals.
+     *
+     * @param {number} time - Interval time.
+     */
+    function intervalUpdate (time) {
+      setTimeout(function() {
+        if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
+          that.update(document);
+        }
+        intervalUpdate(time);
+      }, time);
+    }
+
+    intervalUpdate(params.time);
+
+    return true;
   };
 
   /**
    * Start mutation observer.
+   *
+   * @param {object} params - Paremeters.
+   * @param {number} params.cooldown - Cooldown period.
+   * @return {boolean} True if observer could be started, else false.
    */
-  MathDisplay.prototype.startObserver = function () {
-    const that = this;
+  MathDisplay.prototype.startMutationObserver = function (params) {
+    var that = this;
 
     if (!this.container) {
       return false;
     }
 
+    this.mutationCoolingPeriod = params.cooldown;
+
     this.observer = new MutationObserver(function (mutations) {
       // Filter out elements that have nothing to do with the inner HTML.
-      mutations = mutations.filter(function (mutation) {
-        return !mutation.target.id.startsWith('MathJax') &&
-          !mutation.target.className.startsWith('MathJax') &&
-          mutation.addedNodes.length > 0;
-      });
-      mutations.forEach(function(mutation) {
-        that.update(mutation.target);
-      });
+      mutations
+        .filter(function (mutation) {
+          return mutation.target.id.indexOf('MathJax') !== 0 &&
+            mutation.target.className.indexOf('MathJax') !== 0 &&
+            mutation.target.tagName !== 'HEAD' &&
+            mutation.addedNodes.length > 0;
+        })
+        .forEach(function(mutation) {
+          that.update(mutation.target);
+        });
     });
 
-    this.observer.observe(this.container, {childList: true});
+    this.observer.observe(this.container, {childList: true, subtree: true});
     return true;
   };
 
@@ -208,15 +266,15 @@ H5P.MathDisplay = (function () {
    * @param {object} [callback] - Callback function.
    */
   MathDisplay.prototype.update = function (elements, callback) {
-    const that = this;
+    var that = this;
 
     if (!this.isReady) {
       return;
     }
 
     // Update was triggered by resize triggered by MathJax, no update needed
-    if (that.mathJaxTriggeredResize === true) {
-      that.mathJaxTriggeredResize = false;
+    if (this.mathJaxTriggeredResize === true) {
+      this.mathJaxTriggeredResize = false;
       return;
     }
 
@@ -239,7 +297,13 @@ H5P.MathDisplay = (function () {
 
           if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 || counter === 0) {
             that.mathJaxTriggeredResize = true;
-            that.parent.trigger('resize');
+            if (that.parent) {
+              that.parent.trigger('resize');
+            }
+            else {
+              // Best effort to resize.
+              window.parent.dispatchEvent(new Event('resize'));
+            }
           }
           else {
             counter--;
@@ -251,23 +315,37 @@ H5P.MathDisplay = (function () {
       };
     }
 
-    // This branching isn't really necessary now, but it might become.
     // The callback will be forwarded to MathJax
     if (this.observer) {
+      /*
+       * For speed reasons, we only add the elements to MathJax's queue that
+       * have been passed by the mutation observer instead of always parsing
+       * the complete document. We could always put everything on MathJax's queue
+       * and let it work doen the queue, but this can become pretty slow.
+       * Instead, we use the cooldown period to ignore further elements.
+       * If elements may have been missed, we once update the complete document.
+       */
       if (!this.updating) {
-        that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+        if (this.missedUpdates) {
+          this.missedSingleUpdates = false;
+          elements = document;
+        }
+        this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         this.updating = setTimeout(function () {
           that.updating = null;
-        }, MATHDISPLAY_COOLING_PERIOD);
+        }, this.mutationCoolingPeriod);
+      }
+      else {
+        this.missedUpdates = true;
       }
     }
     else {
-      that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+      this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
     }
   };
 
   /**
-   * Extend an array just like JQuery's extend.
+   * Extend an array just like jQuery's extend.
    * @param {...Object} arguments - Objects to be merged.
    * @return {Object} Merged objects.
    */
@@ -288,8 +366,8 @@ H5P.MathDisplay = (function () {
     return arguments[0];
   };
 
-  // Will reduce polling of the MutationObserver
-  const MATHDISPLAY_COOLING_PERIOD = 100;
-
   return MathDisplay;
 }) ();
+
+// Fire up the MathDisplay
+new H5P.MathDisplay();
