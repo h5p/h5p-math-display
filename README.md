@@ -37,7 +37,7 @@ You can alter the default configuration of the MathDisplay library by adding som
 
     $conf['h5p_mathdisplay_config'] = array(
       "observers" => array(
-        array("name" => "mutationObserver", "params" => array("cooldown" => 100)),
+        array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
         array("name" => "domChangedListener"),
         array("name" => "interval", "params" => array("time" => 1000))
       ),
@@ -47,6 +47,10 @@ You can alter the default configuration of the MathDisplay library by adding som
           "config" => array(
             "extensions" => array("tex2jax.js"),
             "jax" => array("input/TeX", "output/HTML-CSS"),
+            "tex2jax" => array(
+              // Important, otherwise MathJax will be rendered inside CKEditor
+              ignoreClass => "ckeditor"
+            ),
             "messageStyle" => "none"
           )
         )
@@ -59,7 +63,7 @@ You can alter the default configuration of the MathDisplay library by adding som
     define('H5P_MATHDISPLAY_CONFIG',
       array(
         'observers' => array(
-          array('name' => 'mutationObserver', 'params' => array('cooldown' => 100)),
+          array('name' => 'mutationObserver', 'params' => array('cooldown' => 500)),
           array('name' => 'domChangedListener'),
           array('name' => 'interval', 'params' => array('time' => 1000))
         ),
@@ -69,6 +73,10 @@ You can alter the default configuration of the MathDisplay library by adding som
             'config' => array(
               'extensions' => array('tex2jax.js'),
               'jax' => array('input/TeX','output/HTML-CSS'),
+              'tex2jax' => array(
+                // Important, otherwise MathJax will be rendered inside CKEditor
+                ignoreClass => 'ckeditor'
+              ),
               'messageStyle' => 'none'
             )
           )
