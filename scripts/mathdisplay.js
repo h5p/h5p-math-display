@@ -130,7 +130,7 @@ H5P.MathDisplay = (function () {
      * @param {number} [interval=100] - Wait time per poll in ms.
      */
     function waitForMathJax (callback, counter, interval) {
-      counter = counter || 50;
+      counter = (typeof counter !== 'undefined') ? counter : 50;
       interval = interval || 100;
 
       if (typeof MathJax !== 'undefined') {
@@ -246,7 +246,7 @@ H5P.MathDisplay = (function () {
       mutations
         .filter(function (mutation) {
           return mutation.target.id.indexOf('MathJax') !== 0 &&
-            mutation.target.className.indexOf('MathJax') !== 0 &&
+            (mutation.target.className.indexOf && mutation.target.className.indexOf('MathJax') !== 0) &&
             mutation.target.tagName !== 'HEAD' &&
             mutation.addedNodes.length > 0;
         })
