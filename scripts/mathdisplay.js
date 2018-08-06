@@ -13,6 +13,7 @@ H5P.MathDisplay = (function () {
 
     this.isReady = false;
     this.mathjax = undefined;
+    this.katex = undefined;
     this.observer = undefined;
     this.updating = null;
 
@@ -75,7 +76,7 @@ H5P.MathDisplay = (function () {
         }, that.settings);
       }
 
-      // TODO: Remove
+      // TODO: Remove when working with KaTeX
       that.settings.renderer = {
         katex: {
           src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js',
@@ -87,6 +88,9 @@ H5P.MathDisplay = (function () {
           autorender: {
             src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js',
             integrity: 'sha384-aGfk5kvhIq5x1x5YdvCp4upKZYnA8ckafviDpmWEKp4afOZEqOli7gqSnh8I6enH'
+          },
+          config: {
+            // Common Katex options
           }
         }
       };
@@ -105,13 +109,7 @@ H5P.MathDisplay = (function () {
           }
 
           that.mathjax = mathjax;
-          startObservers(that.settings.observers);
-
-          // MathDisplay is ready
-          that.isReady = true;
-
-          // Update math content and resize
-          that.update(that.container);
+          start();
         });
       }
 
@@ -132,16 +130,23 @@ H5P.MathDisplay = (function () {
 
             that.renderMathInElement = results.renderMathInElement;
 
-            startObservers(that.settings.observers);
-
-            // MathDisplay is ready
-            that.isReady = true;
-
-            // Update math content and resize
-            that.update(that.container);
+            start();
           });
         });
       }
+    }
+
+    /**
+     * Start MathDisplay.
+     */
+    function start () {
+      startObservers(that.settings.observers);
+
+      // MathDisplay is ready
+      that.isReady = true;
+
+      // Update math content and resize
+      that.update(that.container);
     }
 
     /**
@@ -210,6 +215,13 @@ H5P.MathDisplay = (function () {
       }
     }
 
+    /**
+     * Wait until Autorender has been loaded. Maximum of 5 seconds by default.
+     *
+     * @param {function} callback - Callback with params {object} katex and {string} error.
+     * @param {number} [counter=50] - Maximum number of retries.
+     * @param {number} [interval=100] - Wait time per poll in ms.
+     */
     function waitForAutorender (callback, counter, interval) {
       counter = (typeof counter !== 'undefined') ? counter : 50;
       interval = interval || 100;
@@ -333,7 +345,7 @@ H5P.MathDisplay = (function () {
       if (that.mathjax) {
         setTimeout(function() {
           if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
-            that.update(document);
+            that.update(document.body);
           }
           intervalUpdate(time);
         }, time);
@@ -341,8 +353,7 @@ H5P.MathDisplay = (function () {
 
       if (that.katex) {
         setTimeout(function() {
-          // TODO: cooldown?
-          that.update(document);
+          that.update(document.body);
           intervalUpdate(time);
         }, time);
       }
@@ -468,13 +479,14 @@ H5P.MathDisplay = (function () {
       if (!this.updating) {
         if (this.missedUpdates) {
           this.missedSingleUpdates = false;
-          elements = document;
+          elements = document.body;
         }
         if (this.mathjax) {
           this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         }
         else if (this.katex) {
-          this.renderMathInElement(elements);
+          // TODO: KaTeX will render in CKEditor and can only ignore tags, not class names :-/
+          this.renderMathInElement(elements, this.settings.renderer.katex.config);
           callback();
         }
         this.updating = setTimeout(function () {
@@ -490,7 +502,8 @@ H5P.MathDisplay = (function () {
         this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
       }
       else if (this.katex) {
-        this.renderMathInElement(elements);
+        // TODO: KaTeX will render in CKEditor and can only ignore tags, not class names :-/
+        this.renderMathInElement(elements, this.settings.renderer.katex.config);
         callback();
       }
     }
