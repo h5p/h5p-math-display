@@ -75,6 +75,22 @@ H5P.MathDisplay = (function () {
         }, that.settings);
       }
 
+      // TODO: Remove
+      that.settings.renderer = {
+        katex: {
+          src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js',
+          integrity: 'sha384-U8Vrjwb8fuHMt6ewaCy8uqeUXv4oitYACKdB0VziCerzt011iQ/0TqlSlv8MReCm',
+          stylesheet: {
+            href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css',
+            integrity: 'sha384-9tPv11A+glH/on/wEu99NVwDPwkMQESOocs/ZGXPoIiLE8MU/qkqUcZ3zzL+6DuH'
+          },
+          autorender: {
+            src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js',
+            integrity: 'sha384-aGfk5kvhIq5x1x5YdvCp4upKZYnA8ckafviDpmWEKp4afOZEqOli7gqSnh8I6enH'
+          }
+        }
+      };
+
       that.parent = that.settings.parent;
 
       // If h5p-container is not set, we're in an editor that may still be loading, hence document
@@ -96,6 +112,34 @@ H5P.MathDisplay = (function () {
 
           // Update math content and resize
           that.update(that.container);
+        });
+      }
+
+      if (that.settings.renderer.katex) {
+        getKatex(that.settings.renderer.katex, function(results, error) {
+          if (error) {
+            console.warn(error);
+            return;
+          }
+
+          that.katex = results.katex;
+
+          getAutorender(that.settings.renderer.katex, function(results, error) {
+            if (error) {
+              console.warn(error);
+              return;
+            }
+
+            that.renderMathInElement = results.renderMathInElement;
+
+            startObservers(that.settings.observers);
+
+            // MathDisplay is ready
+            that.isReady = true;
+
+            // Update math content and resize
+            that.update(that.container);
+          });
         });
       }
     }
@@ -145,6 +189,43 @@ H5P.MathDisplay = (function () {
     }
 
     /**
+     * Wait until Katex has been loaded. Maximum of 5 seconds by default.
+     *
+     * @param {function} callback - Callback with params {object} katex and {string} error.
+     * @param {number} [counter=50] - Maximum number of retries.
+     * @param {number} [interval=100] - Wait time per poll in ms.
+     */
+    function waitForKatex (callback, counter, interval) {
+      counter = (typeof counter !== 'undefined') ? counter : 50;
+      interval = interval || 100;
+
+      if (typeof katex !== 'undefined') {
+        callback({katex:katex});
+      }
+      else if (counter > 0) {
+        setTimeout(waitForKatex, interval, callback, --counter);
+      }
+      else {
+        callback(undefined, 'Could not load Katex');
+      }
+    }
+
+    function waitForAutorender (callback, counter, interval) {
+      counter = (typeof counter !== 'undefined') ? counter : 50;
+      interval = interval || 100;
+
+      if (typeof renderMathInElement !== 'undefined') {
+        callback({renderMathInElement: renderMathInElement});
+      }
+      else if (counter > 0) {
+        setTimeout(waitForAutorender, interval, callback, --counter);
+      }
+      else {
+        callback(undefined, 'Could not load Autorender');
+      }
+    }
+
+    /**
      * Get MathJax if available.
      *
      * For MathJax in-line-configuration options cmp.
@@ -171,6 +252,43 @@ H5P.MathDisplay = (function () {
       document.getElementsByTagName('head')[0].appendChild(script);
 
       return waitForMathJax(callback);
+    }
+
+    function getKatex (settings, callback) {
+      // Add Katex script to document
+      var stylesheet = document.createElement('link');
+      stylesheet.type = 'text/css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = settings.stylesheet.href;
+      if (settings.stylesheet.integrity) {
+        stylesheet.intregrity = settings.stylesheet.integrity;
+        stylesheet.crossOrigin = 'anonymous';
+      }
+      document.getElementsByTagName('head')[0].appendChild(stylesheet);
+
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = settings.src;
+      if (settings.integrity) {
+        script.integrity = settings.integrity;
+        script.crossOrigin = 'anonymous';
+      }
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+      return waitForKatex(callback);
+    }
+
+    function getAutorender (settings, callback) {
+      // Add Autorender script to document
+      var script = document.createElement('script');
+      script.src = settings.autorender.src;
+      if (settings.autorender.integrity) {
+        script.integrity = settings.autorender.integrity;
+        script.crossOrigin = 'anonymous';
+      }
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+      return waitForAutorender(callback);
     }
   }
 
@@ -212,12 +330,22 @@ H5P.MathDisplay = (function () {
      * @param {number} time - Interval time.
      */
     function intervalUpdate (time) {
-      setTimeout(function() {
-        if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
+      if (that.mathjax) {
+        setTimeout(function() {
+          if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
+            that.update(document);
+          }
+          intervalUpdate(time);
+        }, time);
+      }
+
+      if (that.katex) {
+        setTimeout(function() {
+          // TODO: cooldown?
           that.update(document);
-        }
-        intervalUpdate(time);
-      }, time);
+          intervalUpdate(time);
+        }, time);
+      }
     }
 
     intervalUpdate(params.time);
@@ -279,7 +407,7 @@ H5P.MathDisplay = (function () {
     }
 
     // Default resize after MathJax has finished
-    if (typeof callback === 'undefined') {
+    if (typeof callback === 'undefined' && this.mathjax) {
       callback = function () {
         // Resize interaction after there are no more DOM changes to expect by MathJax
 
@@ -314,6 +442,18 @@ H5P.MathDisplay = (function () {
         waitForMathJaxDone();
       };
     }
+    if (typeof callback === 'undefined' && this.katex) {
+      callback = function () {
+        that.mathJaxTriggeredResize = true;
+        if (that.parent) {
+          that.parent.trigger('resize');
+        }
+        else {
+          // Best effort to resize.
+          window.parent.dispatchEvent(new Event('resize'));
+        }
+      };
+    }
 
     // The callback will be forwarded to MathJax
     if (this.observer) {
@@ -330,7 +470,13 @@ H5P.MathDisplay = (function () {
           this.missedSingleUpdates = false;
           elements = document;
         }
-        this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
+        if (this.mathjax) {
+          this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
+        }
+        else if (this.katex) {
+          this.renderMathInElement(elements);
+          callback();
+        }
         this.updating = setTimeout(function () {
           that.updating = null;
         }, this.mutationCoolingPeriod);
@@ -340,7 +486,13 @@ H5P.MathDisplay = (function () {
       }
     }
     else {
-      this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+      if (this.mathjax) {
+        this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
+      }
+      else if (this.katex) {
+        this.renderMathInElement(elements);
+        callback();
+      }
     }
   };
 
