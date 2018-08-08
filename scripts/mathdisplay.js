@@ -76,24 +76,27 @@ H5P.MathDisplay = (function () {
         }, that.settings);
       }
 
-      // TODO: Remove when working with KaTeX
-      that.settings.renderer = {
-        katex: {
-          src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js',
-          integrity: 'sha384-U8Vrjwb8fuHMt6ewaCy8uqeUXv4oitYACKdB0VziCerzt011iQ/0TqlSlv8MReCm',
-          stylesheet: {
-            href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css',
-            integrity: 'sha384-9tPv11A+glH/on/wEu99NVwDPwkMQESOocs/ZGXPoIiLE8MU/qkqUcZ3zzL+6DuH'
-          },
-          autorender: {
-            src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js',
-            integrity: 'sha384-aGfk5kvhIq5x1x5YdvCp4upKZYnA8ckafviDpmWEKp4afOZEqOli7gqSnh8I6enH'
-          },
-          config: {
-            // Common Katex options
-          }
-        }
-      };
+      // Uncomment to test with KaTeX
+      // that.settings.renderer = {
+      //   katex: {
+      //     src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js',
+      //     integrity: 'sha384-U8Vrjwb8fuHMt6ewaCy8uqeUXv4oitYACKdB0VziCerzt011iQ/0TqlSlv8MReCm',
+      //     stylesheet: {
+      //       href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css',
+      //       integrity: 'sha384-9tPv11A+glH/on/wEu99NVwDPwkMQESOocs/ZGXPoIiLE8MU/qkqUcZ3zzL+6DuH'
+      //     },
+      //     autorender: {
+      //       src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js',
+      //       integrity: 'sha384-aGfk5kvhIq5x1x5YdvCp4upKZYnA8ckafviDpmWEKp4afOZEqOli7gqSnh8I6enH'
+      //     },
+      //     // Common Katex options
+      //     config: {
+      //       // Important, otherwise KaTeX will be rendered inside CKEditor
+      //       // Property ignoredClass available as of KaTeX release 0.10.0
+      //       ignoredClasses: ['ckeditor']
+      //     }
+      //   }
+      // };
 
       that.parent = that.settings.parent;
 
