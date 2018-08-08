@@ -59,9 +59,9 @@ H5P.MathDisplay = (function () {
       if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
         that.settings = that.extend({
           renderer: {
-            // See http://docs.mathjax.org/en/latest/options/index.html for options
             mathjax: {
               src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
+              // See http://docs.mathjax.org/en/latest/options/index.html for options
               config: {
                 extensions: ['tex2jax.js'],
                 jax: ['input/TeX','output/HTML-CSS'],
@@ -105,13 +105,13 @@ H5P.MathDisplay = (function () {
 
       if (that.settings.renderer.mathjax) {
         // Load MathJax dynamically
-        getMathJax(that.settings.renderer.mathjax, function(mathjax, error) {
+        getMathJax(that.settings.renderer.mathjax, function(results, error) {
           if (error) {
             console.warn(error);
             return;
           }
 
-          that.mathjax = mathjax;
+          that.mathjax = results.mathjax;
           start();
         });
       }
@@ -186,7 +186,7 @@ H5P.MathDisplay = (function () {
       interval = interval || 100;
 
       if (typeof MathJax !== 'undefined') {
-        callback(MathJax);
+        callback({mathjax: MathJax});
       }
       else if (counter > 0) {
         setTimeout(waitForMathJax, interval, callback, --counter);
