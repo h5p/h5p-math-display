@@ -21,13 +21,15 @@ In the case of MathJax, this object uses the same structure that you may be accu
 In the case of KaTeX (works properly as of version 0.10), this object uses the same structure that you may be accustomed to by the [KaTeX options](https://khan.github.io/KaTeX/docs/options.html) and the [options of KaTeX's autorender extension](https://khan.github.io/KaTeX/docs/autorender.html).
 
 ### Observers ###
-There are different "observers" that will tell the renderer that the page might need an update. It should not be necessary to use all observers at the same time, but it is possible. By default, the mutationObserver will be used with a cooldown period of 500ms. Also, the domChangedListener will be used by default.
+There are different "observers" that will tell the renderer that the page might need an update. It should not be necessary to use all observers at the same time, but it is possible.
 
 1. `mutationObserver`: Will constantly listen to DOM changes and trigger an update if a change occurs. Parameters:
     - `cooldown`: Number of milliseconds that updates will be triggered after an update
 2. `domChangedListener`: Will trigger an update if it detects an H5P Event with the handle `domChanged` by a content type.
 3. `interval`: Will repreatedly trigger an update after a defined interval. Parameters:
     - `time`: Number of milliseconds between each update.
+
+By default, the mutationObserver will be used with a cooldown period of 500ms. Also, the domChangedListener will be used by default.
 
 ### Example: Drupal 7 with MathJax
 You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
