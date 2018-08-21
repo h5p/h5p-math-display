@@ -79,15 +79,15 @@ H5P.MathDisplay = (function () {
       // Uncomment to test with KaTeX
       // that.settings.renderer = {
       //   katex: {
-      //     src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.js',
-      //     integrity: 'sha384-U8Vrjwb8fuHMt6ewaCy8uqeUXv4oitYACKdB0VziCerzt011iQ/0TqlSlv8MReCm',
+      //     src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.js',
+      //     integrity: 'sha384-ttOZCNX+557qK00I95MHw9tttcgWn2PjR/bXecuEvENq6nevFtwSSQ6bYEN6AetB',
       //     stylesheet: {
-      //       href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css',
-      //       integrity: 'sha384-9tPv11A+glH/on/wEu99NVwDPwkMQESOocs/ZGXPoIiLE8MU/qkqUcZ3zzL+6DuH'
+      //       href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.css',
+      //       integrity: 'sha384-JwmmMju6Z7M9jiY4RXeJLoNb3aown2QCC/cI7JPgmOLsn3n33pdwAj0Ml/CMMd1W'
       //     },
       //     autorender: {
-      //       src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/contrib/auto-render.min.js',
-      //       integrity: 'sha384-aGfk5kvhIq5x1x5YdvCp4upKZYnA8ckafviDpmWEKp4afOZEqOli7gqSnh8I6enH'
+      //       src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/contrib/auto-render.min.js',
+      //       integrity: 'sha384-yACMu8JWxKzSp/C1YV86pzGiQ/l1YUfE8oPuahJQxzehAjEt2GiQuy/BIvl9KyeF'
       //     },
       //     // Common Katex options
       //     config: {

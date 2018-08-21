@@ -14,7 +14,7 @@ The MathDisplay library requires the appropriate update to your host system and 
 The MathDisplay library can be configured setting the environment variable `H5P_MATHDISPLAY_CONFIG` of your host system.
 
 ### Renderer ###
-So far, the MathDisplay library supports MathJax and KaTeX (as of final version 0.10) for rendering math. By default, MathJax will be used, but you can tweak its settings or switch to KaTeX.
+So far, the MathDisplay library supports MathJax and KaTeX (as of version 0.10-rc) for rendering math. By default, MathJax will be used, but you can tweak its settings or switch to KaTeX.
 
 The MathDisplay library expects to find a `renderer` property within `H5P_MATHDISPLAY_CONFIG` which itself holds an object named after the library that's used.
 In the case of MathJax, this object uses the same structure that you may be accustomed to by the [MathJax in-line configuration options](https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options).
@@ -69,13 +69,15 @@ You can alter the default configuration of the MathDisplay library to use KaTeX 
       "renderer" => array(
         "katex" => array(
           // You should also be able to use a local copy of KaTeX by providing the correct data here.
-          // Also, consider to add the integrity property with the correct value for src/href!
-          "src" => "https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js",
+          "src" => "https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.js",
+          "integrity" => "sha384-ttOZCNX+557qK00I95MHw9tttcgWn2PjR/bXecuEvENq6nevFtwSSQ6bYEN6AetB",
           "stylesheet" => array(
-            href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css'
+            href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.css',
+            integrity: 'sha384-JwmmMju6Z7M9jiY4RXeJLoNb3aown2QCC/cI7JPgmOLsn3n33pdwAj0Ml/CMMd1W'
           ),
           "autorender": array(
-            src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js'
+            src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/contrib/auto-render.min.js',
+            integrity: 'sha384-yACMu8JWxKzSp/C1YV86pzGiQ/l1YUfE8oPuahJQxzehAjEt2GiQuy/BIvl9KyeF'
           ),
           // Common KaTeX options
           "config": array(
@@ -127,13 +129,15 @@ You can alter the default configuration of the MathDisplay library to use KaTeX 
         "renderer" => array(
           "katex" => array(
             // You should also be able to use a local copy of KaTeX by providing the correct data here.
-            // Also, consider to add the integrity property with the correct value for src/href!
-            "src" => "https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js",
+            "src" => "https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.js",
+            "integrity" => "sha384-ttOZCNX+557qK00I95MHw9tttcgWn2PjR/bXecuEvENq6nevFtwSSQ6bYEN6AetB",
             "stylesheet" => array(
-              href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css'
+              href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.css',
+              integrity: 'sha384-JwmmMju6Z7M9jiY4RXeJLoNb3aown2QCC/cI7JPgmOLsn3n33pdwAj0Ml/CMMd1W'
             ),
             "autorender": array(
-              src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js'
+              src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/contrib/auto-render.min.js',
+              integrity: 'sha384-yACMu8JWxKzSp/C1YV86pzGiQ/l1YUfE8oPuahJQxzehAjEt2GiQuy/BIvl9KyeF'
             ),
             // Common KaTeX options
             "config": array(
