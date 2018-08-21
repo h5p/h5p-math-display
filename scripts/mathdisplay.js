@@ -2,6 +2,10 @@
 
 var H5P = H5P || {};
 
+/*
+ * TODO: Separate renderers
+ */
+
 /** @namespace H5P */
 H5P.MathDisplay = (function () {
   'use strict';
@@ -488,7 +492,6 @@ H5P.MathDisplay = (function () {
           this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         }
         else if (this.katex) {
-          // TODO: KaTeX will render in CKEditor and can only ignore tags, not class names :-/
           this.renderMathInElement(elements, this.settings.renderer.katex.config);
           callback();
         }
@@ -505,7 +508,6 @@ H5P.MathDisplay = (function () {
         this.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, elements], callback);
       }
       else if (this.katex) {
-        // TODO: KaTeX will render in CKEditor and can only ignore tags, not class names :-/
         this.renderMathInElement(elements, this.settings.renderer.katex.config);
         callback();
       }
