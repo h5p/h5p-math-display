@@ -63,6 +63,8 @@ H5P.MathDisplay = (function () {
               src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
               config: {
                 extensions: ['tex2jax.js'],
+                showMathMenu: false,
+                displayAlign: 'left',
                 jax: ['input/TeX','output/HTML-CSS'],
                 tex2jax: {
                   // Important, otherwise MathJax will be rendered inside CKEditor
@@ -184,7 +186,7 @@ H5P.MathDisplay = (function () {
    * @param {object} params - Parameters. Currently not used.
    * @return {boolean} True if observer could be started, else false.
    */
-  MathDisplay.prototype.startDOMChangedListener = function (params) {
+  MathDisplay.prototype.startDOMChangedListener = function () {
     var that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
@@ -301,8 +303,17 @@ H5P.MathDisplay = (function () {
               that.parent.trigger('resize');
             }
             else {
+
+              // TODO - Could check if window height has changed every 10ms
+              // for a second or so
+              var resize = function() {
+                window.parent.dispatchEvent(new Event('resize'));
+              };
               // Best effort to resize.
-              window.parent.dispatchEvent(new Event('resize'));
+              setTimeout(function () {
+                resize();
+              }, 1000);
+              resize();
             }
           }
           else {
