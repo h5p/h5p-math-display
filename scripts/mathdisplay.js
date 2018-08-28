@@ -1,4 +1,4 @@
-/* globals MathJax, console, H5PIntegration */
+/* globals MathJax, console */
 
 var H5P = H5P || {};
 
@@ -8,7 +8,7 @@ H5P.MathDisplay = (function () {
   /**
    * Constructor.
    */
-  function MathDisplay () {
+  function MathDisplay() {
     var that = this;
 
     this.isReady = false;
@@ -39,7 +39,7 @@ H5P.MathDisplay = (function () {
     /**
      * Initialize MathDisplay with settings that host may have set in ENV
      */
-    function initialize () {
+    function initialize() {
       // Get settings from host
       that.settings = H5P.getLibraryConfig('H5P.MathDisplay');
 
@@ -107,7 +107,7 @@ H5P.MathDisplay = (function () {
      *
      * @param {object[]} observers - Observers to be used.
      */
-    function startObservers (observers) {
+    function startObservers(observers) {
       // Start observers
       observers.forEach(function (observer) {
         switch (observer.name) {
@@ -125,28 +125,6 @@ H5P.MathDisplay = (function () {
     }
 
     /**
-     * Wait until MathJax has been loaded. Maximum of 5 seconds by default.
-     *
-     * @param {function} callback - Callback with params {object} mathjax and {string} error.
-     * @param {number} [counter=50] - Maximum number of retries.
-     * @param {number} [interval=100] - Wait time per poll in ms.
-     */
-    function waitForMathJax (callback, counter, interval) {
-      counter = (typeof counter !== 'undefined') ? counter : 50;
-      interval = interval || 100;
-
-      if (typeof MathJax !== 'undefined') {
-        callback(MathJax);
-      }
-      else if (counter > 0) {
-        setTimeout(waitForMathJax, interval, callback, --counter);
-      }
-      else {
-        callback(undefined, 'Could not load MathJax');
-      }
-    }
-
-    /**
      * Get MathJax if available.
      *
      * For MathJax in-line-configuration options cmp.
@@ -156,23 +134,28 @@ H5P.MathDisplay = (function () {
      * @param {function} callback - Callback function.
      * @return {function} Callback with params {object} mathjax and {string} error.
      */
-    function getMathJax (settings, callback) {
+    function getMathJax(settings, callback) {
+
+      var errorLoadingMathjax = function () {
+        callback(undefined, 'Could not load MathJax');
+      };
+
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = settings.src;
+      script.onerror = errorLoadingMathjax;
+      script.onload = function () {
+        if (typeof MathJax !== 'undefined') {
+          MathJax.Hub.Config(settings.config);
+          callback(MathJax);
+        }
+        else {
+          errorLoadingMathjax();
+        }
+      };
 
-      // Fallback for some versions of Opera.
-      var config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
-      if (window.opera) {
-        script.innerHTML = config;
-      }
-      else {
-        script.text = config;
-      }
-      document.getElementsByTagName('head')[0].appendChild(script);
-
-      return waitForMathJax(callback);
+      document.body.appendChild(script);
     }
   }
 
@@ -382,7 +365,7 @@ H5P.MathDisplay = (function () {
   };
 
   return MathDisplay;
-}) ();
+})();
 
 // Fire up the MathDisplay
 new H5P.MathDisplay();
