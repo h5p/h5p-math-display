@@ -41,7 +41,7 @@ H5P.MathDisplay = (function () {
      */
     function initialize () {
       // Get settings from host
-      that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
+      that.settings = H5P.getLibraryConfig('H5P.MathDisplay');
 
       // Set default observers if none configured. Will need tweaking.
       if (!that.settings.observers || that.settings.observers.length === 0) {
