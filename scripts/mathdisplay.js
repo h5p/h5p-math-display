@@ -303,17 +303,21 @@ H5P.MathDisplay = (function () {
               that.parent.trigger('resize');
             }
             else {
+              var h5pContent = document.querySelector('.h5p-content');
 
-              // TODO - Could check if window height has changed every 10ms
-              // for a second or so
-              var resize = function() {
-                window.parent.dispatchEvent(new Event('resize'));
-              };
-              // Best effort to resize.
-              setTimeout(function () {
-                resize();
-              }, 1000);
-              resize();
+              // There might be other animations going on when the math symbols
+              // have been rendered. Below, we therefore have check changes in height
+              // for a second, a trigger resize when needed.
+              var resizeCounter = 0;
+              var lalla = setInterval(function () {
+                // Invoke resize if h5p content need more room
+                if (h5pContent.offsetHeight > document.body.offsetHeight) {
+                  window.parent.dispatchEvent(new Event('resize'));
+                }
+                if ((resizeCounter++) >= 25 ) {
+                  clearInterval(lalla);
+                }
+              }, 40);
             }
           }
           else {
