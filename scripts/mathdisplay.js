@@ -84,9 +84,9 @@ H5P.MathDisplay = (function () {
 
       if (that.settings.renderer.mathjax) {
         // Load MathJax dynamically
-        getMathJax(that.settings.renderer.mathjax, function(mathjax, error) {
-          if (error) {
-            console.warn(error);
+        getMathJax(that.settings.renderer.mathjax, function(mathjax) {
+          if (mathjax === undefined) {
+            console.warn('Could not load Mathjax');
             return;
           }
 
@@ -135,24 +135,17 @@ H5P.MathDisplay = (function () {
      * @return {function} Callback with params {object} mathjax and {string} error.
      */
     function getMathJax(settings, callback) {
-
-      var errorLoadingMathjax = function () {
-        callback(undefined, 'Could not load MathJax');
-      };
-
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = settings.src;
-      script.onerror = errorLoadingMathjax;
+      script.onerror = callback;
       script.onload = function () {
-        if (typeof MathJax !== 'undefined') {
+        var success = (typeof MathJax !== 'undefined');
+        if (success) {
           MathJax.Hub.Config(settings.config);
-          callback(MathJax);
         }
-        else {
-          errorLoadingMathjax();
-        }
+        callback(success ? MathJax: undefined);
       };
 
       document.body.appendChild(script);
