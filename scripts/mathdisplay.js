@@ -46,7 +46,7 @@ H5P.MathDisplay = (function () {
      */
     function initialize () {
       // Get settings from host
-      that.settings = (H5PIntegration && H5PIntegration.mathDisplayConfig) ? H5PIntegration.mathDisplayConfig : {};
+      that.settings = H5P.getLibraryConfig('H5P.MathDisplay');
 
       // Set default observers if none configured. Will need tweaking.
       if (!that.settings.observers || that.settings.observers.length === 0) {
@@ -68,6 +68,8 @@ H5P.MathDisplay = (function () {
               // See http://docs.mathjax.org/en/latest/options/index.html for options
               config: {
                 extensions: ['tex2jax.js'],
+                showMathMenu: false,
+                displayAlign: 'left',
                 jax: ['input/TeX','output/HTML-CSS'],
                 tex2jax: {
                   // Important, otherwise MathJax will be rendered inside CKEditor
@@ -321,7 +323,7 @@ H5P.MathDisplay = (function () {
    * @param {object} params - Parameters. Currently not used.
    * @return {boolean} True if observer could be started, else false.
    */
-  MathDisplay.prototype.startDOMChangedListener = function (params) {
+  MathDisplay.prototype.startDOMChangedListener = function () {
     var that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
       that.update(event.data.$target[0]);
@@ -447,8 +449,21 @@ H5P.MathDisplay = (function () {
               that.parent.trigger('resize');
             }
             else {
-              // Best effort to resize.
-              window.parent.dispatchEvent(new Event('resize'));
+              var h5pContent = document.querySelector('.h5p-content');
+
+              // There might be other animations going on when the math symbols
+              // have been rendered. Below, we therefore have check changes in height
+              // for a second, a trigger resize when needed.
+              var resizeCounter = 0;
+              var lalla = setInterval(function () {
+                // Invoke resize if h5p content need more room
+                if (h5pContent.offsetHeight > document.body.offsetHeight) {
+                  window.parent.dispatchEvent(new Event('resize'));
+                }
+                if ((resizeCounter++) >= 25 ) {
+                  clearInterval(lalla);
+                }
+              }, 40);
             }
           }
           else {
