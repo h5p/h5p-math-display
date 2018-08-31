@@ -62,7 +62,7 @@ You can alter the default configuration of the MathDisplay library by adding som
 ### Example: WordPress
 You can alter the default configuration of the MathDisplay library by adding something like this to the `wp-config.php` file.
 
-    define('h5p_library_config', array(
+    define('H5P_LIBRARY_CONFIG', array(
       "H5P.MathDisplay" => array(
         "observers" => array(
           array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
@@ -85,3 +85,6 @@ You can alter the default configuration of the MathDisplay library by adding som
         )
       )
     ));
+
+### Example: Moodle
+TBD
