@@ -35,23 +35,25 @@ TODO: List the default values after tweaking.
 ### Example: Drupal 7
 You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
 
-    $conf['h5p_mathdisplay_config'] = array(
-      "observers" => array(
-        array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
-        array("name" => "domChangedListener"),
-        array("name" => "interval", "params" => array("time" => 1000))
-      ),
-      "renderer" => array(
-        "mathjax" => array(
-          "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
-          "config" => array(
-            "extensions" => array("tex2jax.js"),
-            "jax" => array("input/TeX", "output/HTML-CSS"),
-            "tex2jax" => array(
-              // Important, otherwise MathJax will be rendered inside CKEditor
-              ignoreClass => "ckeditor"
-            ),
-            "messageStyle" => "none"
+    $conf['h5p_library_config'] = array(
+      "H5P.MathDisplay" => array(
+        "observers" => array(
+          array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+          array("name" => "domChangedListener"),
+          array("name" => "interval", "params" => array("time" => 1000))
+        ),
+        "renderer" => array(
+          "mathjax" => array(
+            "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+            "config" => array(
+              "extensions" => array("tex2jax.js"),
+              "jax" => array("input/TeX", "output/HTML-CSS"),
+              "tex2jax" => array(
+                // Important, otherwise MathJax will be rendered inside CKEditor
+                ignoreClass => "ckeditor"
+              ),
+              "messageStyle" => "none"
+            )
           )
         )
       )
@@ -60,26 +62,26 @@ You can alter the default configuration of the MathDisplay library by adding som
 ### Example: WordPress
 You can alter the default configuration of the MathDisplay library by adding something like this to the `wp-config.php` file.
 
-    define('H5P_MATHDISPLAY_CONFIG',
-      array(
-        'observers' => array(
-          array('name' => 'mutationObserver', 'params' => array('cooldown' => 500)),
-          array('name' => 'domChangedListener'),
-          array('name' => 'interval', 'params' => array('time' => 1000))
+    define('h5p_library_config', array(
+      "H5P.MathDisplay" => array(
+        "observers" => array(
+          array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+          array("name" => "domChangedListener"),
+          array("name" => "interval", "params" => array("time" => 1000))
         ),
-        'renderer' => array(
-          'mathjax' => array(
-            'src' => 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
-            'config' => array(
-              'extensions' => array('tex2jax.js'),
-              'jax' => array('input/TeX','output/HTML-CSS'),
-              'tex2jax' => array(
+        "renderer" => array(
+          "mathjax" => array(
+            "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+            "config" => array(
+              "extensions" => array("tex2jax.js"),
+              "jax" => array("input/TeX", "output/HTML-CSS"),
+              "tex2jax" => array(
                 // Important, otherwise MathJax will be rendered inside CKEditor
-                ignoreClass => 'ckeditor'
+                ignoreClass => "ckeditor"
               ),
-              'messageStyle' => 'none'
+              "messageStyle" => "none"
             )
           )
         )
       )
-    );
+    ));
