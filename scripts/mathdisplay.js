@@ -1,4 +1,4 @@
-/* globals MathJax, console, H5PIntegration */
+/* globals MathJax, console */
 
 var H5P = H5P || {};
 
@@ -12,7 +12,7 @@ H5P.MathDisplay = (function () {
   /**
    * Constructor.
    */
-  function MathDisplay () {
+  function MathDisplay() {
     var that = this;
 
     this.isReady = false;
@@ -44,7 +44,7 @@ H5P.MathDisplay = (function () {
     /**
      * Initialize MathDisplay with settings that host may have set in ENV
      */
-    function initialize () {
+    function initialize() {
       // Get settings from host
       that.settings = H5P.getLibraryConfig('H5P.MathDisplay');
 
@@ -83,26 +83,26 @@ H5P.MathDisplay = (function () {
       }
 
       // Uncomment to test with KaTeX
-      // that.settings.renderer = {
-      //   katex: {
-      //     src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.js',
-      //     integrity: 'sha384-ttOZCNX+557qK00I95MHw9tttcgWn2PjR/bXecuEvENq6nevFtwSSQ6bYEN6AetB',
-      //     stylesheet: {
-      //       href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.css',
-      //       integrity: 'sha384-JwmmMju6Z7M9jiY4RXeJLoNb3aown2QCC/cI7JPgmOLsn3n33pdwAj0Ml/CMMd1W'
-      //     },
-      //     autorender: {
-      //       src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/contrib/auto-render.min.js',
-      //       integrity: 'sha384-yACMu8JWxKzSp/C1YV86pzGiQ/l1YUfE8oPuahJQxzehAjEt2GiQuy/BIvl9KyeF'
-      //     },
-      //     // Common Katex options
-      //     config: {
-      //       // Important, otherwise KaTeX will be rendered inside CKEditor
-      //       // Property ignoredClass available as of KaTeX release 0.10.0
-      //       ignoredClasses: ['ckeditor']
-      //     }
-      //   }
-      // };
+      that.settings.renderer = {
+        katex: {
+          src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.js',
+          integrity: 'sha384-ttOZCNX+557qK00I95MHw9tttcgWn2PjR/bXecuEvENq6nevFtwSSQ6bYEN6AetB',
+          stylesheet: {
+            href: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/katex.min.css',
+            integrity: 'sha384-JwmmMju6Z7M9jiY4RXeJLoNb3aown2QCC/cI7JPgmOLsn3n33pdwAj0Ml/CMMd1W'
+          },
+          autorender: {
+            src: 'https://cdn.jsdelivr.net/npm/katex@0.10.0-rc/dist/contrib/auto-render.min.js',
+            integrity: 'sha384-yACMu8JWxKzSp/C1YV86pzGiQ/l1YUfE8oPuahJQxzehAjEt2GiQuy/BIvl9KyeF'
+          },
+          // Common Katex options
+          config: {
+            // Important, otherwise KaTeX will be rendered inside CKEditor
+            // Property ignoredClass available as of KaTeX release 0.10.0
+            ignoredClasses: ['ckeditor']
+          }
+        }
+      };
 
       that.parent = that.settings.parent;
 
@@ -163,7 +163,7 @@ H5P.MathDisplay = (function () {
      *
      * @param {object[]} observers - Observers to be used.
      */
-    function startObservers (observers) {
+    function startObservers(observers) {
       // Start observers
       observers.forEach(function (observer) {
         switch (observer.name) {
@@ -256,23 +256,21 @@ H5P.MathDisplay = (function () {
      * @param {function} callback - Callback function.
      * @return {function} Callback with params {object} mathjax and {string} error.
      */
-    function getMathJax (settings, callback) {
+    function getMathJax(settings, callback) {
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = settings.src;
+      script.onerror = callback;
+      script.onload = function () {
+        var success = (typeof MathJax !== 'undefined');
+        if (success) {
+          MathJax.Hub.Config(settings.config);
+        }
+        callback(success ? MathJax: undefined);
+      };
 
-      // Fallback for some versions of Opera.
-      var config = 'MathJax.Hub.Config(' + JSON.stringify(settings.config) + ');';
-      if (window.opera) {
-        script.innerHTML = config;
-      }
-      else {
-        script.text = config;
-      }
-      document.getElementsByTagName('head')[0].appendChild(script);
-
-      return waitForMathJax(callback);
+      document.body.appendChild(script);
     }
 
     function getKatex (settings, callback) {
@@ -552,7 +550,7 @@ H5P.MathDisplay = (function () {
   };
 
   return MathDisplay;
-}) ();
+})();
 
 // Fire up the MathDisplay
 new H5P.MathDisplay();

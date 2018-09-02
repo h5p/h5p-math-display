@@ -33,7 +33,33 @@ By default, the mutationObserver will be used with a cooldown period of 500ms. A
 
 ### Example: Drupal 7 with MathJax
 You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
+```
+$conf['h5p_library_config'] = array(
+  "H5P.MathDisplay" => array(
+    "observers" => array(
+      array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+      array("name" => "domChangedListener"),
+      array("name" => "interval", "params" => array("time" => 1000))
+    ),
+    "renderer" => array(
+      "mathjax" => array(
+        "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+        "config" => array(
+          "extensions" => array("tex2jax.js"),
+          "jax" => array("input/TeX", "output/HTML-CSS"),
+          "tex2jax" => array(
+            // Important, otherwise MathJax will be rendered inside CKEditor
+            "ignoreClass" => "ckeditor"
+          ),
+          "messageStyle" => "none"
+        )
+      )
+    )
+  )
+);
+```
 
+<<<<<<< HEAD
     $conf['h5p_mathdisplay_config'] = array(
       "observers" => array(
         array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
@@ -53,9 +79,35 @@ You can alter the default configuration of the MathDisplay library by adding som
             ),
             "messageStyle" => "none"
           )
+=======
+### Example: Drupal 8
+You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
+```
+$config['h5p.settings']['h5p_library_config'] = array(
+  'H5P.MathDisplay' => array(
+    "observers" => array(
+      array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+      array("name" => "domChangedListener"),
+      array("name" => "interval", "params" => array("time" => 1000))
+    ),
+    "renderer" => array(
+      "mathjax" => array(
+        "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+        "config" => array(
+          "extensions" => array("tex2jax.js"),
+          "jax" => array("input/TeX", "output/HTML-CSS"),
+          "tex2jax" => array(
+            // Important, otherwise MathJax will be rendered inside CKEditor
+            "ignoreClass" => "ckeditor"
+          ),
+          "messageStyle" => "none"
+>>>>>>> origin/master
         )
       )
-    );
+    )
+  )
+);
+```
 
 ### Example: Drupal 7 with KaTeX
 You can alter the default configuration of the MathDisplay library to use KaTeX by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
@@ -91,6 +143,7 @@ You can alter the default configuration of the MathDisplay library to use KaTeX 
 ### Example: WordPress with MathJax
 You can alter the default configuration of the MathDisplay library by adding something like this to the `wp-config.php` file.
 
+<<<<<<< HEAD
     define('H5P_MATHDISPLAY_CONFIG',
       array(
         'observers' => array(
@@ -148,3 +201,60 @@ You can alter the default configuration of the MathDisplay library to use KaTeX 
         )
       )
     );
+=======
+```
+define('H5P_LIBRARY_CONFIG', array(
+  "H5P.MathDisplay" => array(
+    "observers" => array(
+      array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+      array("name" => "domChangedListener"),
+      array("name" => "interval", "params" => array("time" => 1000))
+    ),
+    "renderer" => array(
+      "mathjax" => array(
+        "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+        "config" => array(
+          "extensions" => array("tex2jax.js"),
+          "jax" => array("input/TeX", "output/HTML-CSS"),
+          "tex2jax" => array(
+            // Important, otherwise MathJax will be rendered inside CKEditor
+            "ignoreClass" => "ckeditor"
+          ),
+          "messageStyle" => "none"
+        )
+      )
+    )
+  )
+));
+```
+
+### Example: Moodle
+You can alter the default configuration of the MathDisplay library by adding something like this to the `config.php` file.
+
+```
+$CFG->mod_hvp_library_config = array(
+  "H5P.MathDisplay" => array(
+    "observers" => array(
+      array("name" => "mutationObserver", "params" => array("cooldown" => 500)),
+      array("name" => "domChangedListener"),
+      array("name" => "interval", "params" => array("time" => 1000))
+    ),
+    "renderer" => array(
+      "mathjax" => array(
+        "src" => "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js",
+        "config" => array(
+          "extensions" => array("tex2jax.js"),
+          "jax" => array("input/TeX", "output/HTML-CSS"),
+          "tex2jax" => array(
+            // Important, otherwise MathJax will be rendered inside CKEditor
+            "ignoreClass" => "ckeditor"
+          ),
+          "messageStyle" => "none"
+        )
+      )
+    )
+  )
+);
+
+```
+>>>>>>> origin/master
