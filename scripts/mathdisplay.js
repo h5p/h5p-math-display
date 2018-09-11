@@ -83,7 +83,7 @@ H5P.MathDisplay = (function () {
 
       if (that.settings.renderer.mathjax) {
         // Load MathJax dynamically
-        getMathJax(that.settings.renderer.mathjax, function(mathjax) {
+        getMathJax(that.settings.renderer.mathjax, function (mathjax) {
           if (mathjax === undefined) {
             console.warn('Could not load Mathjax');
             return;
@@ -188,8 +188,8 @@ H5P.MathDisplay = (function () {
      *
      * @param {number} time - Interval time.
      */
-    function intervalUpdate (time) {
-      setTimeout(function() {
+    function intervalUpdate(time) {
+      setTimeout(function () {
         if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
           that.update(document);
         }
@@ -227,7 +227,7 @@ H5P.MathDisplay = (function () {
             mutation.target.tagName !== 'HEAD' &&
             mutation.addedNodes.length > 0;
         })
-        .forEach(function(mutation) {
+        .forEach(function (mutation) {
           that.update(mutation.target);
         });
     });
@@ -268,7 +268,7 @@ H5P.MathDisplay = (function () {
          * @param {number} [counter=100] - Maximum number of retries.
          * @param {number} [interval=100] - Wait time per poll in ms.
          */
-        function waitForMathJaxDone (counter, interval) {
+        function waitForMathJaxDone(counter, interval) {
           counter = counter || 100;
           interval = interval || 100;
 
@@ -279,20 +279,21 @@ H5P.MathDisplay = (function () {
             }
             else {
               var h5pContent = document.querySelector('.h5p-content');
-
-              // There might be other animations going on when the math symbols
-              // have been rendered. Below, we therefore have check changes in height
-              // for a second, a trigger resize when needed.
-              var resizeCounter = 0;
-              var lalla = setInterval(function () {
-                // Invoke resize if h5p content need more room
-                if (h5pContent.offsetHeight > document.body.offsetHeight) {
-                  window.parent.dispatchEvent(new Event('resize'));
-                }
-                if ((resizeCounter++) >= 25 ) {
-                  clearInterval(lalla);
-                }
-              }, 40);
+              if (h5pContent) {
+                // There might be other animations going on when the math symbols
+                // have been rendered. Below, we therefore have check changes in height
+                // for a second, a trigger resize when needed.
+                var resizeCounter = 0;
+                var lalla = setInterval(function () {
+                  // Invoke resize if h5p content need more room
+                  if (h5pContent.offsetHeight > document.body.offsetHeight) {
+                    window.parent.dispatchEvent(new Event('resize'));
+                  }
+                  if ((resizeCounter++) >= 25 ) {
+                    clearInterval(lalla);
+                  }
+                }, 40);
+              }
             }
           }
           else {
