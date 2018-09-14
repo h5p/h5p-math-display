@@ -7,7 +7,7 @@ The MathDisplay library requires the appropriate update to your host system and 
 1. Upload the library in the H5P library screen.
 2. Add LaTex to your content using the common LaTeX notation:
    - `\(some LaTeX\)` for inline LaTeX
-   - `\[some LaTeX\)` for block LaTeX
+   - `\[some LaTeX\]` for block LaTeX
    - `$$some LaTeX$$` for block LaTeX
 
 ## Customizing the configuration
