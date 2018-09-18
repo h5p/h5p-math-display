@@ -317,13 +317,13 @@ H5P.MathDisplay = (function () {
        * If elements may have been missed, we once update the complete document.
        */
       if (!this.updating) {
-        if (this.missedUpdates) {
-          this.missedSingleUpdates = false;
-          elements = document;
-        }
         this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
         this.updating = setTimeout(function () {
           that.updating = null;
+          if (that.missedUpdates) {
+            that.missedUpdates = false;
+            that.update(document);
+          }
         }, this.mutationCoolingPeriod);
       }
       else {
