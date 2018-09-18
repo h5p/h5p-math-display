@@ -274,10 +274,14 @@ H5P.MathDisplay = (function () {
 
           if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 || counter === 0) {
             that.mathJaxTriggeredResize = true;
+
             if (that.parent) {
               that.parent.trigger('resize');
             }
             else {
+              // Trigger a resize
+              window.parent.dispatchEvent(new Event('resize'));
+
               var h5pContent = document.querySelector('.h5p-content');
               if (h5pContent) {
                 // There might be other animations going on when the math symbols
