@@ -322,7 +322,7 @@ H5P.MathDisplay = (function () {
           that.updating = null;
           if (that.missedUpdates) {
             that.missedUpdates = false;
-            that.update(document);
+            that.mathjax.Hub.Queue(["Typeset", that.mathjax.Hub, document], callback);
           }
         }, this.mutationCoolingPeriod);
       }
