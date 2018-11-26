@@ -259,6 +259,16 @@ H5P.MathDisplay = (function () {
     if (typeof callback === 'undefined') {
       callback = function () {
         // Resize interaction after there are no more DOM changes to expect by MathJax
+        function triggerResize() {
+          try {
+            if (H5P && H5P.instances && H5P.instances.length !== 0) {
+              H5P.instances[0].trigger('resize');
+            }
+          }
+          catch (e) {
+            // Do nothing if it fails
+          }
+        }
 
         /**
          * Wait until MathJax has finished rendering.
@@ -280,7 +290,7 @@ H5P.MathDisplay = (function () {
             }
             else {
               // Trigger a resize
-              window.parent.dispatchEvent(new Event('resize'));
+              triggerResize();
 
               var h5pContent = document.querySelector('.h5p-content');
               if (h5pContent) {
@@ -288,13 +298,13 @@ H5P.MathDisplay = (function () {
                 // have been rendered. Below, we therefore have check changes in height
                 // for a second, a trigger resize when needed.
                 var resizeCounter = 0;
-                var lalla = setInterval(function () {
+                var intervaller = setInterval(function () {
                   // Invoke resize if h5p content need more room
-                  if (h5pContent.offsetHeight > document.body.offsetHeight) {
-                    window.parent.dispatchEvent(new Event('resize'));
+                  if (h5pContent && h5pContent.offsetHeight > document.body.offsetHeight) {
+                    triggerResize();
                   }
                   if ((resizeCounter++) >= 25 ) {
-                    clearInterval(lalla);
+                    clearInterval(intervaller);
                   }
                 }, 40);
               }
