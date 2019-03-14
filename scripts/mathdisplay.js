@@ -249,12 +249,6 @@ H5P.MathDisplay = (function () {
       return;
     }
 
-    // Update was triggered by resize triggered by MathJax, no update needed
-    if (this.mathJaxTriggeredResize === true) {
-      this.mathJaxTriggeredResize = false;
-      return;
-    }
-
     // Default resize after MathJax has finished
     if (typeof callback === 'undefined') {
       callback = function () {
@@ -283,8 +277,6 @@ H5P.MathDisplay = (function () {
           interval = interval || 100;
 
           if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0 || counter === 0) {
-            that.mathJaxTriggeredResize = true;
-
             if (that.parent) {
               that.parent.trigger('resize');
             }
