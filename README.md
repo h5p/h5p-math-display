@@ -34,7 +34,7 @@ TODO: List the default values after tweaking.
 
 ### Example: Drupal 7
 You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
-```
+```php
 $conf['h5p_library_config'] = array(
   "H5P.MathDisplay" => array(
     "observers" => array(
@@ -62,7 +62,7 @@ $conf['h5p_library_config'] = array(
 
 ### Example: Drupal 8
 You can alter the default configuration of the MathDisplay library by adding something like this to the `settings.php` file within your `/sites/YOUR_SITE` folder, typically it's `/sites/default`.
-```
+```php
 $config['h5p.settings']['h5p_library_config'] = array(
   'H5P.MathDisplay' => array(
     "observers" => array(
@@ -91,7 +91,7 @@ $config['h5p.settings']['h5p_library_config'] = array(
 ### Example: WordPress
 You can alter the default configuration of the MathDisplay library by adding something like this to the `wp-config.php` file.
 
-```
+```php
 define('H5P_LIBRARY_CONFIG', array(
   "H5P.MathDisplay" => array(
     "observers" => array(
@@ -120,7 +120,7 @@ define('H5P_LIBRARY_CONFIG', array(
 ### Example: Moodle
 You can alter the default configuration of the MathDisplay library by adding something like this to the `config.php` file.
 
-```
+```php
 $CFG->mod_hvp_library_config = array(
   "H5P.MathDisplay" => array(
     "observers" => array(
