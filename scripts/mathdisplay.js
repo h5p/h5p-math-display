@@ -15,7 +15,7 @@ H5P.MathDisplay = (function () {
     this.mathjax = undefined;
     this.observer = undefined;
     this.updating = null;
-    this.mathCanHasBeenAdded = false;
+    this.mathHasBeenAdded = false;
 
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
@@ -225,7 +225,7 @@ H5P.MathDisplay = (function () {
       if (includesMathJaxAdded(mutations)) {
         // We are only resize the content if MathJax was actually added as
         // constant resizing of the entire content is quite expensive.
-        that.mathCanHasBeenAdded = true;
+        that.mathHasBeenAdded = true;
       }
 
       // Filter out elements that have nothing to do with the inner HTML.
@@ -268,8 +268,8 @@ H5P.MathDisplay = (function () {
      * Triggered when MathJax has finished rendering
      */
     const callback = function () {
-      if (self.mathCanHasBeenAdded) {
-        self.mathCanHasBeenAdded = false;
+      if (self.mathHasBeenAdded) {
+        self.mathHasBeenAdded = false;
         resizeH5PContent();
       }
     };
@@ -305,7 +305,7 @@ H5P.MathDisplay = (function () {
     else {
       // TODO: Determine if this is really needed or used? Most likely it has
       // not been tested in a while and has no way of actually detecting if
-      // MathJax did add something and trigger a reisze on the content.
+      // MathJax did add something and trigger a resize on the content.
       this.mathjax.Hub.Queue(["Typeset", self.mathjax.Hub, elements], callback);
     }
   };
@@ -342,11 +342,14 @@ H5P.MathDisplay = (function () {
   const includesMathJaxAdded = function (mutations) {
     for (let i = 0; i < mutations.length; i++) {
       for (let j = 0; j < mutations[i].addedNodes.length; j++) {
-        if (mutations[i].addedNodes[j] instanceof HTMLElement && mutations[i].addedNodes[j].classList.contains('MathJax_Display')) {
-         return true;
+        const node = mutations[i].addedNodes[j];
+        if (node instanceof HTMLElement && node.classList.contains('MathJax_Display')) {
+          return true;
         }
       }
     }
+
+    return false;
   };
 
   /**
