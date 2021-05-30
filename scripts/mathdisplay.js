@@ -343,7 +343,7 @@ H5P.MathDisplay = (function () {
     for (let i = 0; i < mutations.length; i++) {
       for (let j = 0; j < mutations[i].addedNodes.length; j++) {
         const node = mutations[i].addedNodes[j];
-        if (node instanceof HTMLElement && node.classList.contains('MathJax_Display')) {
+        if (node instanceof HTMLElement && (node.classList.contains('MathJax') || node.classList.contains('MathJax_Display'))) {
           return true;
         }
       }
