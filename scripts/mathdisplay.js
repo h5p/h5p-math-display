@@ -26,16 +26,7 @@ H5P.MathDisplay = (function () {
      * case we need a mechanism to detect the availability of H5PIntegration for
      * getting the source.
      */
-    if (document.readyState === 'complete') {
-      initialize();
-    }
-    else {
-      document.onreadystatechange = function () {
-        if (document.readyState === 'complete') {
-          initialize();
-        }
-      };
-    }
+    H5P.jQuery(document).ready(initialize);
 
     /**
      * Initialize MathDisplay with settings that host may have set in ENV
