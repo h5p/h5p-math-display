@@ -1,6 +1,4 @@
-/* globals MathJax, console */
-
-var H5P = H5P || {};
+require('mathjax-full/es5/tex-chtml-full');
 
 /** @namespace H5P */
 H5P.MathDisplay = (function () {
@@ -46,23 +44,6 @@ H5P.MathDisplay = (function () {
         }, that.settings);
       }
 
-      // Set MathJax using CDN as default if no config given.
-      if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
-        that.settings = that.extend({
-          renderer: {
-            // See http://docs.mathjax.org/en/latest/options/index.html for options
-            mathjax: {
-              src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js',
-              options: {
-                enableMenu: false,
-                processHtmlClass: "tex2jax_process",
-                ignoreClass: "ckeditor" // Important, otherwise MathJax will be rendered inside CKEditor
-              }
-            }
-          }
-        }, that.settings);
-      }
-
       if (that.settings.parent !== undefined) {
         console.error('Beep bop! This was disabled since no one knew what it was actually used for @ H5P.MathDisplay');
       }
@@ -70,24 +51,14 @@ H5P.MathDisplay = (function () {
       // If h5p-container is not set, we're in an editor that may still be loading, hence document
       that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0] || document;
 
-      if (that.settings.renderer.mathjax) {
-        // Load MathJax dynamically
-        getMathJax(that.settings.renderer.mathjax, function (mathjax) {
-          if (mathjax === undefined) {
-            console.warn('Could not load Mathjax');
-            return;
-          }
+      that.mathjax = MathJax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
+      startObservers(that.settings.observers);
 
-          that.mathjax = mathjax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
-          startObservers(that.settings.observers);
+      // MathDisplay is ready
+      that.isReady = true;
 
-          // MathDisplay is ready
-          that.isReady = true;
-
-          // Update math content and resize
-          that.update();
-        });
-      }
+      // Update math content and resize
+      that.update();
     }
 
     /**
@@ -110,37 +81,6 @@ H5P.MathDisplay = (function () {
             break;
         }
       });
-    }
-
-    /**
-     * Get MathJax if available.
-     *
-     * For MathJax in-line-configuration options cmp.
-     * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
-     *
-     * @param {object} settings - MathJax in-line configuration options.
-     * @param {function} callback - Callback function.
-     * @return {function} Callback with params {object} mathjax and {string} error.
-     */
-    function getMathJax(settings, callback) {
-      // Add mathjax config before loading actual file
-      if (settings.config) {
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = settings.config;
-        document.body.appendChild(script);
-      }
-      // Add MathJax script to document
-      var script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = settings.src;
-      script.onerror = callback;
-      script.onload = function () {
-        var success = (typeof MathJax !== 'undefined');
-        callback(success ? MathJax: undefined);
-      };
-
-      document.body.appendChild(script);
     }
   }
 
