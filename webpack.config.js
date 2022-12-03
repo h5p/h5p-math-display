@@ -20,6 +20,7 @@ module.exports = {
           path.resolve(__dirname, "scripts"),
           path.resolve(__dirname, "entries")
         ],
+        exclude: /node_modules/,
         loader: 'babel-loader'
       }
     ]
@@ -30,7 +31,8 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "../node_modules/mathjax-full/es5/output/chtml/fonts/woff-v2", to: "fonts" }
+        { from: "../node_modules/mathjax/es5/output/chtml/fonts/woff-v2", to: "fonts" },
+        { from: "../node_modules/mathjax/es5/tex-chtml-full.js", to: "mathjax.js" }
       ],
     }),
   ]

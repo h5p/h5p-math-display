@@ -1,5 +1,3 @@
-require('mathjax-full/es5/tex-chtml-full');
-
 /** @namespace H5P */
 H5P.MathDisplay = (function () {
   'use strict';

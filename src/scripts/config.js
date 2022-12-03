@@ -2,13 +2,14 @@ MathJax = {
   options: {
     enableMenu: false,
     ignoreHtmlClass: 'ckeditor',
-    processHtmlClass: 'tex2jax_process1',
+    processHtmlClass: 'tex2jax_process',
     enableAssistiveMml: true,
     menuOptions: {
       settings: {
         collapsible: false,
         inTabOrder: true,
-        explorer: false
+        explorer: false,
+        assistiveMml: false,
       }
     },
   },

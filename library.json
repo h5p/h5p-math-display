@@ -15,6 +15,9 @@
   "preloadedJs": [
     {
       "path": "dist/h5p-math-display.js"
+    },
+    {
+      "path": "dist/mathjax.js"
     }
   ],
   "addTo": {
