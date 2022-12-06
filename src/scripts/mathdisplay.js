@@ -49,11 +49,10 @@ H5P.MathDisplay = (function () {
       // If h5p-container is not set, we're in an editor that may still be loading, hence document
       that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0] || document;
 
-      that.mathjax = MathJax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
-      startObservers(that.settings.observers);
+      // Load MathJax dynamically
+      const settings = that.settings.renderer && that.settings.renderer.mathjax ? that.settings.renderer.mathjax : null;
+      getMathJax(settings);
 
-      // MathDisplay is ready
-      that.isReady = true;
 
       // Update math content and resize
       that.update();
@@ -79,6 +78,33 @@ H5P.MathDisplay = (function () {
             break;
         }
       });
+    }
+
+    /**
+     * Get MathJax if available.
+     *
+     * For MathJax in-line-configuration options cmp.
+     * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
+     *
+     * @param {object} settings - MathJax in-line configuration options.
+     */
+    function getMathJax(settings) {
+      // Add mathjax config before loading actual file
+      if (settings && settings.config) {
+        MathJax = that.extend(MathJax, settings.config);
+      }
+      // Add MathJax script to document
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = H5P.getLibraryPath('H5P.MathDisplay-1.0')+'/dist/mathjax.js';
+      script.async = true;
+      script.onload = function () {
+        that.mathjax = MathJax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
+        startObservers(that.settings.observers);
+        // MathDisplay is ready
+        that.isReady = true;
+      };
+      document.body.appendChild(script);
     }
   }
 

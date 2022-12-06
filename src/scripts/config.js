@@ -3,7 +3,15 @@ MathJax = {
     enableMenu: false,
     ignoreHtmlClass: 'ckeditor',
     processHtmlClass: 'tex2jax_process',
-    enableAssistiveMml: true,
+    sre: {
+      speech: 'shallow'  // one of: 'deep', 'shallow', or 'none'
+    },
+    renderActions: {
+      enrich: {'[+]': [
+        function (doc) {doc.enrich(true)},
+        function (math, doc) {math.enrich(doc, true)}
+      ]}
+    },
     menuOptions: {
       settings: {
         collapsible: false,
@@ -14,10 +22,10 @@ MathJax = {
     },
   },
   tex: {
-    packages: ['base', 'cancel', 'ams']
+    packages: {'[+]': ['ams', 'cancel']}
   },
   loader: {
-    load: ['[tex]/cancel']
+    load: ['[tex]/cancel', '[tex]/ams', 'a11y/semantic-enrich']
   },
   startup: {
     pageReady: () => {
