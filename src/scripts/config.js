@@ -21,11 +21,8 @@ MathJax = {
       }
     },
   },
-  tex: {
-    packages: {'[+]': ['ams', 'cancel']}
-  },
   loader: {
-    load: ['[tex]/cancel', '[tex]/ams', 'a11y/semantic-enrich']
+    load: ['a11y/semantic-enrich']
   },
   startup: {
     pageReady: () => {
