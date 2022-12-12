@@ -1,7 +1,3 @@
-/* globals MathJax, console */
-
-var H5P = H5P || {};
-
 /** @namespace H5P */
 H5P.MathDisplay = (function () {
   'use strict';
@@ -46,28 +42,6 @@ H5P.MathDisplay = (function () {
         }, that.settings);
       }
 
-      // Set MathJax using CDN as default if no config given.
-      if (!that.settings.renderer || Object.keys(that.settings.renderer).length === 0) {
-        that.settings = that.extend({
-          renderer: {
-            // See http://docs.mathjax.org/en/latest/options/index.html for options
-            mathjax: {
-              src: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js',
-              config: {
-                extensions: ['tex2jax.js'],
-                showMathMenu: false,
-                jax: ['input/TeX','output/HTML-CSS'],
-                tex2jax: {
-                  // Important, otherwise MathJax will be rendered inside CKEditor
-                  ignoreClass: "ckeditor"
-                },
-                messageStyle: 'none'
-              }
-            }
-          }
-        }, that.settings);
-      }
-
       if (that.settings.parent !== undefined) {
         console.error('Beep bop! This was disabled since no one knew what it was actually used for @ H5P.MathDisplay');
       }
@@ -75,24 +49,13 @@ H5P.MathDisplay = (function () {
       // If h5p-container is not set, we're in an editor that may still be loading, hence document
       that.container = that.settings.container || document.getElementsByClassName('h5p-container')[0] || document;
 
-      if (that.settings.renderer.mathjax) {
-        // Load MathJax dynamically
-        getMathJax(that.settings.renderer.mathjax, function (mathjax) {
-          if (mathjax === undefined) {
-            console.warn('Could not load Mathjax');
-            return;
-          }
+      // Load MathJax dynamically
+      const settings = that.settings.renderer && that.settings.renderer.mathjax ? that.settings.renderer.mathjax : null;
+      getMathJax(settings);
 
-          that.mathjax = mathjax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
-          startObservers(that.settings.observers);
 
-          // MathDisplay is ready
-          that.isReady = true;
-
-          // Update math content and resize
-          that.update(that.container);
-        });
-      }
+      // Update math content and resize
+      that.update();
     }
 
     /**
@@ -124,23 +87,23 @@ H5P.MathDisplay = (function () {
      * https://docs.mathjax.org/en/latest/configuration.html#using-in-line-configuration-options
      *
      * @param {object} settings - MathJax in-line configuration options.
-     * @param {function} callback - Callback function.
-     * @return {function} Callback with params {object} mathjax and {string} error.
      */
-    function getMathJax(settings, callback) {
+    function getMathJax(settings) {
+      // Add mathjax config before loading actual file
+      if (settings && settings.config) {
+        MathJax = that.extend(MathJax, settings.config);
+      }
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = settings.src;
-      script.onerror = callback;
+      script.src = H5P.getLibraryPath('H5P.MathDisplay-1.0')+'/dist/mathjax.js';
+      script.async = true;
       script.onload = function () {
-        var success = (typeof MathJax !== 'undefined');
-        if (success) {
-          MathJax.Hub.Config(settings.config);
-        }
-        callback(success ? MathJax: undefined);
+        that.mathjax = MathJax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
+        startObservers(that.settings.observers);
+        // MathDisplay is ready
+        that.isReady = true;
       };
-
       document.body.appendChild(script);
     }
   }
@@ -158,7 +121,7 @@ H5P.MathDisplay = (function () {
   MathDisplay.prototype.startDOMChangedListener = function () {
     var that = this;
     H5P.externalDispatcher.on('domChanged', function (event) {
-      that.update(event.data.$target[0]);
+      that.update();
     });
     return true;
   };
@@ -184,9 +147,7 @@ H5P.MathDisplay = (function () {
      */
     function intervalUpdate(time) {
       setTimeout(function () {
-        if (that.mathjax.Hub.queue.running + that.mathjax.Hub.queue.pending === 0) {
-          that.update(document);
-        }
+        that.update();
         intervalUpdate(time);
       }, time);
     }
@@ -225,13 +186,10 @@ H5P.MathDisplay = (function () {
       // <span> elements added as part of the MathJax formula here...
       mutations
         .filter(function (mutation) {
-          return mutation.target.id.indexOf('MathJax') !== 0 &&
-            (mutation.target.className.indexOf && mutation.target.className.indexOf('MathJax') !== 0) &&
-            mutation.target.tagName !== 'HEAD' &&
-            mutation.addedNodes.length > 0;
+          return mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/);
         })
-        .forEach(function (mutation) {
-          that.update(mutation.target);
+        .forEach(function () {
+          that.update();
         });
     });
 
@@ -241,11 +199,10 @@ H5P.MathDisplay = (function () {
 
   /**
    * Update the DOM by MathJax.
-   *
-   * @param {object[]} [elements] - DOM elements to be updated.
    */
-  MathDisplay.prototype.update = function (elements) {
+  MathDisplay.prototype.update = function () {
     const self = this;
+    let promise = Promise.resolve();
     if (!this.isReady) {
       return;
     }
@@ -265,6 +222,22 @@ H5P.MathDisplay = (function () {
       }
     };
 
+    /**
+     * Handle typesetting for math formula
+     */
+    const handleTypeSetting = function () {
+      promise = promise
+        .then(() => {
+          // Let Mathjax know we are clearning the typeset
+          self.mathjax.typesetClear();
+          self.mathjax.typesetPromise().then(() => {
+            callback();
+          });
+        })
+        .catch((err) => console.log('Typeset failed: ' + err.message));
+      return promise;
+    };
+
     if (this.observer) {
       /*
        * For speed reasons, we only add the elements to MathJax's queue that
@@ -275,12 +248,12 @@ H5P.MathDisplay = (function () {
        * If elements may have been missed, we once update the complete document.
        */
       if (!this.updating) {
-        this.mathjax.Hub.Queue(["Typeset", this.mathjax.Hub, elements], callback);
+        handleTypeSetting();
         this.updating = setTimeout(function () {
           self.updating = null;
           if (self.missedUpdates) {
             self.missedUpdates = false;
-            self.mathjax.Hub.Queue(["Typeset", self.mathjax.Hub, document], callback); // TODO: Do we need to specify document? I believe the entire pages is the default
+            handleTypeSetting();
           }
         }, this.mutationCoolingPeriod);
       }
@@ -297,7 +270,7 @@ H5P.MathDisplay = (function () {
       // TODO: Determine if this is really needed or used? Most likely it has
       // not been tested in a while and has no way of actually detecting if
       // MathJax did add something and trigger a resize on the content.
-      this.mathjax.Hub.Queue(["Typeset", self.mathjax.Hub, elements], callback);
+      handleTypeSetting();
     }
   };
 
