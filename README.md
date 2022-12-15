@@ -10,7 +10,11 @@ The MathDisplay library requires the appropriate update to your host system and 
    - `\[some LaTeX\]` for block LaTeX
    - `$$some LaTeX$$` for block LaTeX
 
-## Customizing the configuration
+**Do note the configuration option described below is only supported if you're using <= 1.0.8. Any newer version uses mathjax with a predefined setup.**
+
+<details><summary>Customizing the configuration</summary>
+
+<p>
 The MathDisplay library can be configured setting the environment variable `H5P_MATHDISPLAY_CONFIG` of your host system.
 
 ### Renderer ###
@@ -146,3 +150,4 @@ $CFG->mod_hvp_library_config = array(
 );
 
 ```
+</p></details>
