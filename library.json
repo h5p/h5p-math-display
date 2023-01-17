@@ -6,7 +6,7 @@
   "author": "Joubel",
   "majorVersion": 1,
   "minorVersion": 0,
-  "patchVersion": 11,
+  "patchVersion": 12,
   "runnable": 0,
   "coreApi": {
     "majorVersion": 1,
@@ -14,7 +14,7 @@
   },
   "preloadedJs": [
     {
-      "path": "dist/h5p-math-display.js"
+      "path": "scripts/mathdisplay.js"
     }
   ],
   "addTo": {
