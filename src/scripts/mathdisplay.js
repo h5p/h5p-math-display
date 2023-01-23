@@ -93,6 +93,21 @@ H5P.MathDisplay = (function () {
       if (settings && settings.config) {
         MathJax = that.extend(MathJax, settings.config);
       }
+
+      // MathJax 3.x doesn't support \\ linebreaks. Wrapping in \displaylines{} fixes this
+      // and ensures compatibility with equations using this instead of other semantic
+      // grouping functions.
+      MathJax.startup = {
+        ready: () => {
+          MathJax.startup.defaultReady();
+          MathJax.startup.document.inputJax[0].preFilters.add(({math}) => {
+            if (math.display === false) {
+              math.math = '\\displaylines{' + math.math + '}';
+            }
+          });
+        }
+      };
+
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
