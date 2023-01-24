@@ -51,6 +51,15 @@ MathJax = {
         }
       }
       MathJax.startup.defaultReady();
+
+      // MathJax 3.x doesn't support \\ linebreaks. Wrapping in \displaylines{} fixes this
+      // and ensures compatibility with equations using this instead of other semantic
+      // grouping functions.
+      MathJax.startup.document.inputJax[0].preFilters.add(({math}) => {
+        if (math.display === false) {
+          math.math = '\\displaylines{' + math.math + '}';
+        }
+      });
     }
   }
 };
