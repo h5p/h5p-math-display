@@ -56,9 +56,7 @@ MathJax = {
       // and ensures compatibility with equations using this instead of other semantic
       // grouping functions.
       MathJax.startup.document.inputJax[0].preFilters.add(({math}) => {
-        if (math.display === false) {
-          math.math = '\\displaylines{' + math.math + '}';
-        }
+        math.math = '\\displaylines{' + math.math + '}'; // math = https://github.com/mathjax/MathJax-src/blob/master/ts/core/MathItem.ts
       });
     }
   }
