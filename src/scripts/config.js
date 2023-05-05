@@ -3,9 +3,6 @@ MathJax = {
     enableMenu: false,
     ignoreHtmlClass: 'ckeditor',
     processHtmlClass: 'tex2jax_process',
-    sre: {
-      speech: 'shallow'  // one of: 'deep', 'shallow', or 'none'
-    },
     renderActions: {
       enrich: {'[+]': [
         function (doc) {doc.enrich(true)},
@@ -17,7 +14,6 @@ MathJax = {
         collapsible: false,
         inTabOrder: true,
         explorer: false,
-        assistiveMml: false,
       }
     },
   },
