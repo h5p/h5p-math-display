@@ -17,6 +17,11 @@
       "path": "dist/h5p-math-display.js"
     }
   ],
+  "preloadedCss": [
+    {
+      "path": "src/styles/h5p-math-display.css"
+    }
+  ],
   "addTo": {
     "content": {
       "types": [
