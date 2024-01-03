@@ -19,7 +19,7 @@
   ],
   "preloadedCss": [
     {
-      "path": "src/styles/h5p-math-display.css"
+      "path": "h5p-math-display.css"
     }
   ],
   "addTo": {
