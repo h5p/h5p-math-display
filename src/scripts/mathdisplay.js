@@ -35,7 +35,7 @@ H5P.MathDisplay = (function () {
       if (!that.settings.observers || that.settings.observers.length === 0) {
         that.settings = that.extend({
           observers: [
-            {name: 'mutationObserver', params: {cooldown: 500}},
+            {name: 'mutationObserver', params: {cooldown: 5000}},
             {name: 'domChangedListener'},
             //{name: 'interval', params: {time: 1000}},
           ]
@@ -227,15 +227,23 @@ H5P.MathDisplay = (function () {
      * Handle typesetting for math formula
      */
     const handleTypeSetting = function () {
+      if (self.handleTypeSettingRunning) {
+        return;
+      }
+      self.handleTypeSettingRunning = true;
       promise = promise
         .then(() => {
           // Let Mathjax know we are clearning the typeset
           self.mathjax.typesetClear();
           self.mathjax.typesetPromise().then(() => {
             callback();
+            delete self.handleTypeSettingRunning;
           });
         })
-        .catch((err) => console.log('Typeset failed: ' + err.message));
+        .catch((err) => {
+          console.log('Typeset failed: ' + err.message);
+          delete self.handleTypeSettingRunning;
+        });
       return promise;
     };
 
