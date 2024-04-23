@@ -235,7 +235,10 @@ H5P.MathDisplay = (function () {
             callback();
           });
         })
-        .catch((err) => console.log('Typeset failed: ' + err.message));
+        .catch((err) => console.log('Typeset failed: ' + err.message))
+        .finally(() => {
+          self.updating = false;
+        })
       return promise;
     };
 
@@ -249,9 +252,7 @@ H5P.MathDisplay = (function () {
        * If elements may have been missed, we once update the complete document.
        */
       if (!this.updating) {
-        handleTypeSetting();
         this.updating = setTimeout(function () {
-          self.updating = null;
           if (self.missedUpdates) {
             self.missedUpdates = false;
             handleTypeSetting();
