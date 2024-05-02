@@ -202,7 +202,6 @@ H5P.MathDisplay = (function () {
    * Update the DOM by MathJax.
    */
   MathDisplay.prototype.update = function () {
-    // delete self.missedUpdates;
     const self = this;
     let promise = Promise.resolve();
     if (!this.isReady) {
