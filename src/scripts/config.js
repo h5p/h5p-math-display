@@ -18,11 +18,10 @@ MathJax = {
       }
     },
     sre: {
-      speech: 'shallow',         // or 'deep', or 'none'
+      speech: 'shallow',        // or 'deep', or 'none'
       domain: 'clearspeak',    // speech rules domain
       style: 'default',       // speech rules style
-      locale: 'en'            // the language to use (en, fr, es, de, it)
-      // TODO: dynamic locale
+      locale: document.documentElement.lang // the language to use (en, fr, es, de, it)
     },
   },
   loader: {
