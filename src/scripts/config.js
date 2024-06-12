@@ -11,14 +11,22 @@ MathJax = {
     },
     menuOptions: {
       settings: {
+        assistiveMml: true,
         collapsible: false,
-        inTabOrder: true,
+        inTabOrder: false,
         explorer: false,
       }
     },
+    sre: {
+      speech: 'shallow',         // or 'deep', or 'none'
+      domain: 'clearspeak',    // speech rules domain
+      style: 'default',       // speech rules style
+      locale: 'en'            // the language to use (en, fr, es, de, it)
+      // TODO: dynamic locale
+    },
   },
   loader: {
-    load: ['a11y/semantic-enrich']
+    load: ['a11y/semantic-enrich', 'a11y/assistive-mml']
   },
   tex: {
         packages: {'[+]': ['fix-unicode']}
