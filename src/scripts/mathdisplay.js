@@ -175,6 +175,9 @@ H5P.MathDisplay = (function () {
     this.mutationCoolingPeriod = params.cooldown;
 
     this.observer = new MutationObserver(function (mutations) {
+      if (this.updatePaused) {
+        return;
+      }
       if (includesMathJaxAdded(mutations)) {
         // We are only resize the content if MathJax was actually added as
         // constant resizing of the entire content is quite expensive.
@@ -185,15 +188,19 @@ H5P.MathDisplay = (function () {
       // TODO: There is probably a more efficient way of filtering out only
       // the relevant elements. E.g. Sometime we are actually processing the
       // <span> elements added as part of the MathJax formula here...
-      mutations
-        .filter(function (mutation) {
-          return mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/);
-        })
-        .forEach(function () {
-          that.update();
-        });
+      let toUpdate = false;
+      for (let item of mutations) {
+        if (item.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/)) {
+          toUpdate = true;
+          break;
+        }
+      }
+      if (toUpdate) {
+        this.updatePaused = true;
+        that.update();
+        this.updatePaused = false;
+      }
     });
-
     this.observer.observe(this.container, {childList: true, subtree: true});
     return true;
   };
@@ -202,6 +209,9 @@ H5P.MathDisplay = (function () {
    * Update the DOM by MathJax.
    */
   MathDisplay.prototype.update = function () {
+    if (this.updatePaused) {
+      return;
+    }
     const self = this;
     let promise = Promise.resolve();
     if (!this.isReady) {
