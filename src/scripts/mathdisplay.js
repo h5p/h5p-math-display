@@ -7,11 +7,8 @@ H5P.MathDisplay = (function () {
   function MathDisplay() {
     var that = this;
 
-    this.isReady = false;
     this.mathjax = undefined;
-    this.observer = undefined;
     this.updating = null;
-    this.mathHasBeenAdded = false;
 
     // Initialize event inheritance
     H5P.EventDispatcher.call(that);
@@ -31,17 +28,6 @@ H5P.MathDisplay = (function () {
       // Get settings from host
       that.settings = H5P.getLibraryConfig('H5P.MathDisplay');
 
-      // Set default observers if none configured. Will need tweaking.
-      if (!that.settings.observers || that.settings.observers.length === 0) {
-        that.settings = that.extend({
-          observers: [
-            {name: 'mutationObserver', params: {cooldown: 500}},
-            {name: 'domChangedListener'},
-            //{name: 'interval', params: {time: 1000}},
-          ]
-        }, that.settings);
-      }
-
       if (that.settings.parent !== undefined) {
         console.error('Beep bop! This was disabled since no one knew what it was actually used for @ H5P.MathDisplay');
       }
@@ -52,32 +38,6 @@ H5P.MathDisplay = (function () {
       // Load MathJax dynamically
       const settings = that.settings.renderer && that.settings.renderer.mathjax ? that.settings.renderer.mathjax : null;
       getMathJax(settings);
-
-
-      // Update math content and resize
-      that.update();
-    }
-
-    /**
-     * Start observers.
-     *
-     * @param {object[]} observers - Observers to be used.
-     */
-    function startObservers(observers) {
-      // Start observers
-      observers.forEach(function (observer) {
-        switch (observer.name) {
-          case 'mutationObserver':
-            that.startMutationObserver(observer.params);
-            break;
-          case 'domChangedListener':
-            that.startDOMChangedListener(observer.params);
-            break;
-          case 'interval':
-            that.startIntervalUpdater(observer.params);
-            break;
-        }
-      });
     }
 
     /**
@@ -100,10 +60,8 @@ H5P.MathDisplay = (function () {
       script.src = H5P.getLibraryPath('H5P.MathDisplay-1.0')+'/dist/mathjax.js';
       script.async = true;
       script.onload = function () {
-        that.mathjax = MathJax; // TODO: How do we know this is the right one? Is this there any reason for having this? AFAIK there can only be one loaded and used per page.
-        startObservers(that.settings.observers);
-        // MathDisplay is ready
-        that.isReady = true;
+        that.mathjax = MathJax;
+        that.startMutationObserver();
       };
       document.body.appendChild(script);
     }
@@ -114,166 +72,82 @@ H5P.MathDisplay = (function () {
   MathDisplay.prototype.constructor = MathDisplay;
 
   /**
-   * Start domChangedListener.
-   *
-   * @param {object} params - Parameters. Currently not used.
-   * @return {boolean} True if observer could be started, else false.
-   */
-  MathDisplay.prototype.startDOMChangedListener = function () {
-    var that = this;
-    H5P.externalDispatcher.on('domChanged', function (event) {
-      that.update();
-    });
-    return true;
-  };
-
-  /**
-   * Start interval updater.
-   *
-   * @param {object} params - Parameters.
-   * @param {number} params.time - Interval time.
-   * @return {boolean} True if observer could be started, else false.
-   */
-  MathDisplay.prototype.startIntervalUpdater = function (params) {
-    var that = this;
-
-    if (!params || !params.time) {
-      return false;
-    }
-
-    /**
-     * Update math display in regular intervals.
-     *
-     * @param {number} time - Interval time.
-     */
-    function intervalUpdate(time) {
-      setTimeout(function () {
-        that.update();
-        intervalUpdate(time);
-      }, time);
-    }
-
-    intervalUpdate(params.time);
-
-    return true;
-  };
-
-  /**
    * Start mutation observer.
-   *
-   * @param {object} params - Paremeters.
-   * @param {number} params.cooldown - Cooldown period.
-   * @return {boolean} True if observer could be started, else false.
    */
-  MathDisplay.prototype.startMutationObserver = function (params) {
-    var that = this;
-
-    if (!this.container) {
-      return false;
+  MathDisplay.prototype.startMutationObserver = function () {
+    var self = this;
+    if (!self.container) {
+      return;
     }
 
-    this.mutationCoolingPeriod = params.cooldown;
-
-    this.observer = new MutationObserver(function (mutations) {
-      if (includesMathJaxAdded(mutations)) {
-        // We are only resize the content if MathJax was actually added as
-        // constant resizing of the entire content is quite expensive.
-        that.mathHasBeenAdded = true;
-      }
-
+    self.observer = new MutationObserver(function (mutations) {
       // Filter out elements that have nothing to do with the inner HTML.
       // TODO: There is probably a more efficient way of filtering out only
       // the relevant elements. E.g. Sometime we are actually processing the
       // <span> elements added as part of the MathJax formula here...
-      mutations
-        .filter(function (mutation) {
-          return mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/);
-        })
-        .forEach(function () {
-          that.update();
-        });
+      mutations.forEach(mutation => {
+        if (mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/)) {
+          self.update(mutation.target);
+        }
+      });
     });
 
-    this.observer.observe(this.container, {childList: true, subtree: true});
-    return true;
+    self.observer.observe(document.body, {childList: true, subtree: true});
   };
 
   /**
    * Update the DOM by MathJax.
    */
-  MathDisplay.prototype.update = function () {
+  MathDisplay.prototype.update = function (target) {
     const self = this;
-    let promise = Promise.resolve();
-    if (!this.isReady) {
-      return;
+
+    if (!self.updating) {
+      self.elementsToUpdate = [];
+      self.updating = setTimeout(function () {
+        try {
+          self.mathjax.typesetClear(self.elementsToUpdate); // Remove
+          self.mathjax.typesetPromise(self.elementsToUpdate).then(() => self.updateDone()); // Add
+        }
+        catch (err) {
+          console.log('Typeset failed: ' + err.message);
+        }
+      }, 40);
     }
 
-    // TODO: There is really no need to call update() until the H5P instance's
-    // attach() has finished running.(MathJax should probably attach on an
-    // instance level instead of the entire page?)
-    // There seems to be a bit of redundant processing going on.
+    // Note that duplicate element trees in the processing queue can lead to strange errors!
+    if (self.elementsToUpdate.indexOf(target) === -1 && // No duplicates
+        !hasAncestor(target, self.elementsToUpdate)) { // No children of existing elements
 
-    /**
-     * Triggered when MathJax has finished rendering
-     */
-    const callback = function () {
-      if (self.mathHasBeenAdded) {
-        self.mathHasBeenAdded = false;
-        resizeH5PContent();
+      // Ensure none of the existing elements are children of the new target
+      for (let i = 0; i < self.elementsToUpdate.length; i++) {
+        if (hasAncestor(self.elementsToUpdate[i], [target])) {
+          self.elementsToUpdate.splice(i, 1); // Remove element as it exists in the new target's sub elements
+          i--;
+        }
       }
-    };
 
-    /**
-     * Handle typesetting for math formula
-     */
-    const handleTypeSetting = function () {
-      promise = promise
-        .then(() => {
-          // Let Mathjax know we are clearning the typeset
-          self.mathjax.typesetClear();
-          self.mathjax.typesetPromise().then(() => {
-            callback();
-          });
-        })
-        .catch((err) => console.log('Typeset failed: ' + err.message))
-        .finally(() => {
-          self.updating = false;
-        })
-      return promise;
-    };
-
-    if (this.observer) {
-      delete self.missedUpdates;
-      /*
-       * For speed reasons, we only add the elements to MathJax's queue that
-       * have been passed by the mutation observer instead of always parsing
-       * the complete document. We could always put everything on MathJax's queue
-       * and let it work doen the queue, but this can become pretty slow.
-       * Instead, we use the cooldown period to ignore further elements.
-       * If elements may have been missed, we once update the complete document.
-       */
-      if (!this.updating) {
-        this.updating = setTimeout(function () {
-          if (self.missedUpdates || self.missedUpdates === undefined) {
-            self.missedUpdates = false;
-            handleTypeSetting();
-          }
-        }, this.mutationCoolingPeriod);
-      }
-      else {
-        this.missedUpdates = true;
-        // TODO: Should we have kept track of the elements that was missed
-        // instead of running the whole document again?
-        // Alternatively, always determine the common parent? Could be relevant
-        // for the foreach in the MutationObserver callback as well to reduce
-        // processing time.
-      }
+      // Add target for Mathjax processing
+      self.elementsToUpdate.push(target);
     }
-    else {
-      // TODO: Determine if this is really needed or used? Most likely it has
-      // not been tested in a while and has no way of actually detecting if
-      // MathJax did add something and trigger a resize on the content.
-      handleTypeSetting();
+  };
+
+  /**
+   * Update the DOM by MathJax.
+   */
+  MathDisplay.prototype.updateDone = function () {
+    const self = this;
+    self.updating = false;
+    for (let i = 0; i < self.elementsToUpdate.length; i++) {
+      if (self.elementsToUpdate[i].querySelector('.MathJax, .MathJax_Display') !== null) {
+        // We have math, resize the content!
+        try {
+          H5P.instances[0].trigger('resize'); // TODO: This solution will work today, but a more future proof solution would be to only resize the instance containing the processed elements.
+        }
+        catch (e) {
+          // Do nothing if it fails
+        }
+        break;
+      }
     }
   };
 
@@ -300,37 +174,21 @@ H5P.MathDisplay = (function () {
   };
 
   /**
-   * Help determine if the observed mutations contained any insertion of
-   * MathJax formulas.
+   * Determine if any of the ancestors are present for the given element.
    *
-   * @param {MutationRecord[]} mutations
-   * @return {Boolean}
+   * @param {*} element
+   * @param {*} ancestor
+   * @returns {Boolean}
    */
-  const includesMathJaxAdded = function (mutations) {
-    for (let i = 0; i < mutations.length; i++) {
-      for (let j = 0; j < mutations[i].addedNodes.length; j++) {
-        const node = mutations[i].addedNodes[j];
-        if (node instanceof HTMLElement && (node.classList.contains('MathJax') || node.classList.contains('MathJax_Display'))) {
-          return true;
-        }
-      }
+  const hasAncestor = (element, potentialAncestors) => {
+    if (element.parentElement === null) {
+      return false; // This element has no ancestors.
     }
-
-    return false;
-  };
-
-  /**
-   * Trigger resize of the first H5P content on the page.
-   *
-   * TODO: Should only resize the content that had MathJax added.
-   */
-  const resizeH5PContent = function () {
-    try {
-      H5P.instances[0].trigger('resize');
+    if (potentialAncestors.indexOf(element.parentElement) !== -1) {
+      return true; // This element has one of the ancestors as a parent.
     }
-    catch (e) {
-      // Do nothing if it fails
-    }
+    // Recursion (check grand-parent)
+    return hasAncestor(element.parentElement, potentialAncestors);
   };
 
   return MathDisplay;
