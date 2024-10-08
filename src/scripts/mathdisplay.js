@@ -80,46 +80,25 @@ H5P.MathDisplay = (function () {
       return;
     }
 
-    this.mutationCoolingPeriod = params.cooldown;
-
-    this.observer = new MutationObserver(function (mutations) {
-      if (this.updatePaused) {
-        return;
-      }
-      if (includesMathJaxAdded(mutations)) {
-        // We are only resize the content if MathJax was actually added as
-        // constant resizing of the entire content is quite expensive.
-        that.mathHasBeenAdded = true;
-      }
-
+    self.observer = new MutationObserver(function (mutations) {
       // Filter out elements that have nothing to do with the inner HTML.
       // TODO: There is probably a more efficient way of filtering out only
       // the relevant elements. E.g. Sometime we are actually processing the
       // <span> elements added as part of the MathJax formula here...
-      let toUpdate = false;
-      for (let item of mutations) {
-        if (item.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/)) {
-          toUpdate = true;
-          break;
+      mutations.forEach(mutation => {
+        if (mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/)) {
+          self.update(mutation.target);
         }
-      }
-      if (toUpdate) {
-        this.updatePaused = true;
-        that.update();
-        this.updatePaused = false;
-      }
+      });
     });
-    this.observer.observe(this.container, {childList: true, subtree: true});
-    return true;
+
+    self.observer.observe(document.body, {childList: true, subtree: true});
   };
 
   /**
    * Update the DOM by MathJax.
    */
-  MathDisplay.prototype.update = function () {
-    if (this.updatePaused) {
-      return;
-    }
+  MathDisplay.prototype.update = function (target) {
     const self = this;
 
     if (!self.updating) {
