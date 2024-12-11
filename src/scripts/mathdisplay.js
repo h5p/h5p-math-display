@@ -54,15 +54,19 @@ H5P.MathDisplay = (function () {
         MathJax = that.extend(MathJax, settings.config);
       }
 
+      const originalPageReady = MathJax.startup.pageReady;
+      MathJax.startup.pageReady = function () {
+        originalPageReady.apply(this, arguments);
+        that.mathjax = MathJax;
+        // Start observer once Mathjax is ready
+        that.startMutationObserver();
+      }
+
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = H5P.getLibraryPath('H5P.MathDisplay-1.0')+'/dist/mathjax.js';
       script.async = true;
-      script.onload = function () {
-        that.mathjax = MathJax;
-        that.startMutationObserver();
-      };
       document.body.appendChild(script);
     }
   }
