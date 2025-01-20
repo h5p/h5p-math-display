@@ -196,10 +196,9 @@ H5P.MathDisplay = (function () {
   };
 
   /**
-   * Determine if any of the ancestors are present for the given element.
+   * Determine if the element is a descendant of CKEditor.
    *
    * @param {*} element
-   * @param {*} ancestor
    * @returns {Boolean}
    */
   const isInsideCKEditor = (element) => {
