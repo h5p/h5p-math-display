@@ -90,7 +90,7 @@ H5P.MathDisplay = (function () {
       // the relevant elements. E.g. Sometime we are actually processing the
       // <span> elements added as part of the MathJax formula here...
       mutations.forEach(mutation => {
-        if (mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/)) {
+        if (mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/) && !isInsideCKEditor(mutation.target)) {
           self.update(mutation.target);
         }
       });
@@ -193,6 +193,24 @@ H5P.MathDisplay = (function () {
     }
     // Recursion (check grand-parent)
     return hasAncestor(element.parentElement, potentialAncestors);
+  };
+
+  /**
+   * Determine if any of the ancestors are present for the given element.
+   *
+   * @param {*} element
+   * @param {*} ancestor
+   * @returns {Boolean}
+   */
+  const isInsideCKEditor = (element) => {
+    const parent = element.parentElement;
+    if (parent === null) {
+      return false;
+    }
+    if (parent.classList.contains('ck')) {
+      return true;
+    }
+    return isInsideCKEditor(parent);
   };
 
   return MathDisplay;
