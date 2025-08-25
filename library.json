@@ -1,12 +1,12 @@
 {
   "machineName": "H5P.MathDisplay",
   "title": "MathDisplay",
-  "description": "Allows to use LaTeX.",
+  "description": "Displays LaTeX as human readable formulas.",
   "license": "MIT",
   "author": "Joubel",
   "majorVersion": 1,
   "minorVersion": 0,
-  "patchVersion": 35,
+  "patchVersion": 37,
   "runnable": 0,
   "coreApi": {
     "majorVersion": 1,
@@ -14,7 +14,10 @@
   },
   "preloadedJs": [
     {
-      "path": "dist/h5p-math-display.js"
+      "path": "h5p-math-display-mathjax-config.js"
+    },
+    {
+      "path": "h5p-math-display.js"
     }
   ],
   "preloadedCss": [
