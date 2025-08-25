@@ -1,6 +1,6 @@
-/* Avoid the assistive mml overflowing the element, 
-to e.g. avoid unneccessary scrollbars inside CP */
-mjx-assistive-mml {
-  right: 0;
-  bottom: 0;
+/* Ensure inline math is inline math */
+mjx-container {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
 }
