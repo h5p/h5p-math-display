@@ -62,10 +62,16 @@ H5P.MathDisplay = (function () {
         that.startMutationObserver();
       }
 
+      const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
+      MathJax.output = {
+        fontPath: libraryPath + '/mathjax-newcm-font'
+      };
+
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = H5P.getLibraryPath('H5P.MathDisplay-1.0')+'/dist/mathjax.js';
+      script.src = libraryPath + '/mathjax/tex-chtml.js';
+
       script.async = true;
       document.body.appendChild(script);
     }

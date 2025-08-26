@@ -10,6 +10,31 @@ The MathDisplay library requires the appropriate update to your host system and 
    - `\[some LaTeX\]` for block LaTeX
    - `$$some LaTeX$$` for block LaTeX
 
+## Upgrading MathJax ##
+
+Note that using package.json was not an option here due to the use of pnpm and file whitelists. (You'd have to build and release your own package first!)
+
+Note that we use a specific branch with our own modifications.
+
+```
+git clone --branch add-option-to-disable-help-dialog git@github.com:h5p/MathJax-src.git MathJax-src
+cd MathJax-src
+pnpm install
+npm run --silent build-all
+# wait a few minutes
+cd ..
+rm -rf mathjax mathjax-newcm-font
+mkdir -p mathjax/sre
+cp MathJax-src/bundle/tex-chtml.js mathjax/
+cp MathJax-src/bundle/sre/speech-worker.js mathjax/sre/
+cp -r MathJax-src/bundle/sre/mathmaps mathjax/sre/
+mkdir -p mathjax-newcm-font/chtml/woff2
+cp MathJax-src/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-zero.woff2 mathjax-newcm-font/chtml/woff2/
+cp MathJax-src/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-brk.woff2 mathjax-newcm-font/chtml/woff2/
+cp MathJax-src/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-n.woff2 mathjax-newcm-font/chtml/woff2/
+```
+
+
 **Do note the configuration option described below is only supported if you're using <= 1.0.8. Any newer version uses mathjax with a predefined setup.**
 
 <details><summary>Customizing the configuration</summary>
