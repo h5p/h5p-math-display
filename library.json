@@ -14,10 +14,7 @@
   },
   "preloadedJs": [
     {
-      "path": "h5p-math-display-mathjax-config.js"
-    },
-    {
-      "path": "h5p-math-display.js"
+      "path": "dist/h5p-math-display.js"
     }
   ],
   "preloadedCss": [
