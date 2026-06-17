@@ -1,5 +1,4 @@
-const libraryPath = 'https://joubel.tabassum.h5p.dev/storage/libraries/H5P.MathDisplay-1.0';
-// const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
+const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
 
 MathJax = {
   chtml: {

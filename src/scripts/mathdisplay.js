@@ -65,11 +65,10 @@ H5P.MathDisplay = (function () {
       // Add MathJax script to document
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      const libraryPath = "https://joubel.tabassum.h5p.dev/storage/libraries/H5P.MathDisplay-1.0";
+      const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
       MathJax.output = {
         fontPath: libraryPath + '/mathjax-newcm-font'
       };
-      // const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
       script.src = libraryPath + '/dist/mathjax.js';
       script.async = true;
       document.body.appendChild(script);
