@@ -1,7 +1,7 @@
 {
   "machineName": "H5P.MathDisplay",
   "title": "MathDisplay",
-  "description": "Allows to use LaTeX.",
+  "description": "Displays LaTeX as human readable formulas.",
   "license": "MIT",
   "author": "Joubel",
   "majorVersion": 1,

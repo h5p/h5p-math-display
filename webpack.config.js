@@ -31,13 +31,13 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "../node_modules/mathjax/es5/tex-chtml-full.js", to: "mathjax.js" },
-        { from: "../node_modules/mathjax/es5/input/mml.js", to: "input/mml.js" },
-        { from: "../node_modules/mathjax/es5/a11y/sre.js", to: "a11y/sre.js" },
-        { from: "../node_modules/mathjax/es5/sre/mathmaps", to: "sre/mathmaps" },
-        { from: "../node_modules/mathjax/es5/a11y/assistive-mml.js", to: "a11y/assistive-mml.js" },
-        { from: "../node_modules/mathjax/es5/a11y/semantic-enrich.js", to: "a11y/semantic-enrich.js" },
-        { from: "../node_modules/mathjax/es5/output/chtml/fonts/woff-v2", to: "fonts" }
+        { from: "../node_modules/mathjax/tex-chtml.js", to: "mathjax.js" },
+        { from: "../node_modules/mathjax/sre/", to: "sre" },
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-zero.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-brk.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-n.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-n.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-lo.woff2", to: "mathjax-newcm-font/chtml/woff2/" }
       ],
     }),
   ]
