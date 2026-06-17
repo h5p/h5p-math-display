@@ -66,9 +66,6 @@ H5P.MathDisplay = (function () {
       var script = document.createElement('script');
       script.type = 'text/javascript';
       const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
-      MathJax.output = {
-        fontPath: libraryPath + '/mathjax-newcm-font'
-      };
       script.src = libraryPath + '/dist/mathjax.js';
       script.async = true;
       document.body.appendChild(script);
