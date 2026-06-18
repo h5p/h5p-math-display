@@ -82,6 +82,10 @@ class MathDisplay extends H5P.EventDispatcher {
     }
 
     this.observer = new MutationObserver((mutations) => {
+      // Filter out elements that have nothing to do with the inner HTML.
+      // TODO: There is probably a more efficient way of filtering out only
+      // the relevant elements. E.g. Sometime we are actually processing the
+      // <span> elements added as part of the MathJax formula here...
       mutations.forEach((mutation) => {
         if (
           mutation.target.textContent.match(/(?:\$|\\\(|\\\[|\\begin\{.*?})/) &&
