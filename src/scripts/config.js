@@ -1,6 +1,6 @@
 const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
 
-MathJax = {
+window.MathJax = {
   chtml: {
     matchFontHeight: true, // True to scale the math to match the ex-height of the surrounding font
     fontURL: `${libraryPath}/dist/mathjax-newcm-font/chtml/woff2`, // The URL where the fonts are found
