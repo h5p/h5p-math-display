@@ -1,5 +1,5 @@
 /* Ensure inline math is inline math */
 mjx-container {
-  display: inline-block;
+  display: inline;
   vertical-align: middle;
 }

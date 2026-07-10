@@ -146,7 +146,7 @@ class MathDisplay extends H5P.EventDispatcher {
 
     for (let i = 0; i < this.elementsToUpdate.length; i++) {
       if (
-        this.elementsToUpdate[i].querySelector('.MathJax, .MathJax_Display') !== null
+        this.elementsToUpdate[i].querySelector('mjx-container') !== null
       ) {
         // We have math, resize the content!
         try {
