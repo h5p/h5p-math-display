@@ -6,6 +6,7 @@ window.MathJax = {
   loader: {
     paths: {
       tex: `${distPath}/input/tex/extensions`,
+       fonts: `${libraryPath}/dist`,
     },
   },
   chtml: {

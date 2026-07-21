@@ -34,10 +34,7 @@ module.exports = {
         { from: "../node_modules/mathjax/tex-chtml.js", to: "mathjax.js" },
         { from: "../node_modules/mathjax/input/tex/extensions/", to: "input/tex/extensions" },
         { from: "../node_modules/mathjax/sre/", to: "sre" },
-        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-zero.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
-        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-brk.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
-        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-n.woff2", to: "mathjax-newcm-font/chtml/woff2/" },
-        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-lo.woff2", to: "mathjax-newcm-font/chtml/woff2/" }
+        { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml", to: "mathjax-newcm-font/chtml"},
       ],
     }),
   ]
