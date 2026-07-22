@@ -1,17 +1,15 @@
-const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
-
 const distPath = document.currentScript.src.replace(/\/[^/?#]*([?#].*)?$/, ''); // strip filename + ?ver
 
 window.MathJax = {
   loader: {
     paths: {
       tex: `${distPath}/input/tex/extensions`,
-       fonts: `${libraryPath}/dist`,
+       fonts: `${distPath}`,
     },
   },
   chtml: {
     matchFontHeight: true, // True to scale the math to match the ex-height of the surrounding font
-    fontURL: `${libraryPath}/dist/mathjax-newcm-font/chtml/woff2`, // The URL where the fonts are found
+    fontURL: `${distPath}/mathjax-newcm-font/chtml/woff2`, // The URL where the fonts are found
     adaptiveCSS: true, // true means only produce CSS that is used in the processed equations
   },
   options: {
@@ -21,8 +19,8 @@ window.MathJax = {
     enableExplorer: true,
     enableExplorerHelp: false,
     worker: {
-      path: `${libraryPath}/dist/sre`, // full path to bundle/a11y/sre (set automatically)
-      maps: `${libraryPath}/dist/sre/mathmaps`, // full path to sre's speech rules
+      path: `${distPath}/sre`, // full path to bundle/a11y/sre (set automatically)
+      maps: `${distPath}/sre/mathmaps`, // full path to sre's speech rules
       worker: 'speech-worker.js', // name of worker script to load as a webworker
       debug: false, // true to include debugging messages in the browser console about
       //   the communications between the page, worker pool, and workers.
