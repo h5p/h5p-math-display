@@ -24,7 +24,11 @@ class MathDisplay extends H5P.EventDispatcher {
    */
   initialize() {
     this.libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
-    window.MathJax = getMathJaxConfig(`${this.libraryPath}/dist`);
+    /*
+     * MathJax boots the speech worker from a blob so the paths handed to MathJax need to be absolute.
+     */
+    const distPath = new URL(`${this.libraryPath}/dist`, document.baseURI).href;
+    window.MathJax = getMathJaxConfig(distPath);
 
     // Get settings from host
     this.settings = H5P.getLibraryConfig('H5P.MathDisplay') || {};
