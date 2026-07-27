@@ -1,10 +1,8 @@
-const distPath = document.currentScript.src.replace(/\/[^/?#]*([?#].*)?$/, ''); // strip filename + ?ver
-
-window.MathJax = {
+const getMathJaxConfig = (distPath) => ({
   loader: {
     paths: {
       tex: `${distPath}/input/tex/extensions`,
-       fonts: `${distPath}`,
+      fonts: `${distPath}`,
     },
   },
   chtml: {
@@ -36,4 +34,6 @@ window.MathJax = {
       }
     }),
   },
-};
+});
+
+export default getMathJaxConfig;

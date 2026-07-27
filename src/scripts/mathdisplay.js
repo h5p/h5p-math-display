@@ -1,5 +1,7 @@
 /** @namespace H5P */
 
+import getMathJaxConfig from './config.js';
+
 class MathDisplay extends H5P.EventDispatcher {
  
   constructor() {
@@ -21,6 +23,9 @@ class MathDisplay extends H5P.EventDispatcher {
    * Initialize MathDisplay with settings that host may have set in ENV
    */
   initialize() {
+    this.libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
+    window.MathJax = getMathJaxConfig(`${this.libraryPath}/dist`);
+
     // Get settings from host
     this.settings = H5P.getLibraryConfig('H5P.MathDisplay') || {};
 
@@ -65,9 +70,7 @@ class MathDisplay extends H5P.EventDispatcher {
     const script = document.createElement('script');
     script.type = 'text/javascript';
 
-    const libraryPath = H5P.getLibraryPath('H5P.MathDisplay-1.0');
-
-    script.src = `${libraryPath}/dist/mathjax.js`;
+    script.src = `${this.libraryPath}/dist/mathjax.js`;
     script.async = true;
 
     document.body.appendChild(script);
