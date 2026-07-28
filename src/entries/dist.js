@@ -1,4 +1,3 @@
-import '../scripts/config.js';
 import MathDisplay from '../scripts/mathdisplay.js';
 
 // eslint-disable-next-line no-global-assign
