@@ -5,6 +5,12 @@ const getMathJaxConfig = (distPath) => ({
       fonts: `${distPath}`,
     },
   },
+  tex: {
+    macros: {
+      surfintegral: "∯",
+      volintegral: "∰"
+    }
+  },
   chtml: {
     matchFontHeight: true, // True to scale the math to match the ex-height of the surrounding font
     fontURL: `${distPath}/mathjax-newcm-font/chtml/woff2`, // The URL where the fonts are found
