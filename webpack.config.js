@@ -35,6 +35,14 @@ module.exports = {
         { from: "../node_modules/mathjax/input/tex/extensions/", to: "input/tex/extensions" },
         { from: "../node_modules/mathjax/sre/", to: "sre" },
         { from: "../node_modules/@mathjax/mathjax-newcm-font/chtml", to: "mathjax-newcm-font/chtml"},
+        {
+          from: "../node_modules/@mathjax/mathjax-mhchem-font-extension/chtml.js",
+          to: "mathjax-mhchem-font-extension/chtml.js"
+        },
+        {
+          from: "../node_modules/@mathjax/mathjax-mhchem-font-extension/chtml",
+          to: "mathjax-mhchem-font-extension/chtml"
+        },
       ],
     }),
   ]
