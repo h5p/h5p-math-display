@@ -2,4 +2,5 @@
 mjx-container {
   display: inline-block;
   vertical-align: middle;
+  overflow-y: hidden; 
 }
