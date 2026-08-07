@@ -1,0 +1,41 @@
+{
+  "name": "h5p-math-display",
+  "version": "1.0.0",
+  "description": "Create Math Formula",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cross-env NODE_ENV=development webpack",
+    "build": "cross-env NODE_ENV=production webpack",
+    "watch": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/h5p/h5p-math-display.git"
+  },
+  "keywords": [
+    "h5p",
+    "library",
+    "math",
+    "math-display"
+  ],
+  "author": "H5P Group AS <contact@h5p.group> (https://h5p.group)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/h5p/h5p-math-display/issues"
+  },
+  "homepage": "https://github.com/h5p/h5p-math-display#readme",
+  "devDependencies": {
+    "@babel/cli": "^8.0.0",
+    "@babel/core": "^8.0.0",
+    "@babel/eslint-parser": "^8.0.0",
+    "@babel/plugin-transform-destructuring": "^8.0.0",
+    "@babel/preset-env": "^8.0.0",
+    "babel-loader": "^10.1.1",
+    "copy-webpack-plugin": "^14.0.0",
+    "cross-env": "^10.1.0",
+    "mathjax": "^4.1.2",
+    "path-browserify": "^1.0.1",
+    "webpack": "^5.107.2",
+    "webpack-cli": "^7.0.3"
+  }
+}
