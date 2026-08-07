@@ -2,3 +2,6 @@
 mjx-container {
   display: inline;
 }
+mjx-assistive-mml {
+  bottom: 0;
+}
