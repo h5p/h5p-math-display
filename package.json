@@ -37,5 +37,8 @@
     "path-browserify": "^1.0.1",
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3"
+  },
+  "dependencies": {
+    "@mathjax/mathjax-mhchem-font-extension": "^4.1.3"
   }
 }
