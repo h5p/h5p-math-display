@@ -2,9 +2,3 @@
 mjx-container {
   display: inline;
 }
-
-/* Avoid the assistive mml overflowing the element, 
-to e.g. avoid unneccessary scrollbars inside CP */
-mjx-assistive-mml {
-  bottom: 0;
-}
