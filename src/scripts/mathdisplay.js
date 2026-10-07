@@ -28,8 +28,11 @@ class MathDisplay extends H5P.EventDispatcher {
     /*
      * MathJax boots the speech worker from a blob so the paths handed to MathJax need to be absolute.
      */
-    const distPath = new URL(`${this.libraryPath}/dist`, document.baseURI).href;
-    window.MathJax = getMathJaxConfig(distPath);
+    // Don't overwrite the config once MathJax has been requested.
+    if (!window.H5PMathDisplayMathJaxRequested) {
+      const distPath = new URL(`${this.libraryPath}/dist`, document.baseURI).href;
+      window.MathJax = getMathJaxConfig(distPath);
+    }
 
     // Get settings from host
     this.settings = H5P.getLibraryConfig('H5P.MathDisplay') || {};
@@ -63,13 +66,26 @@ class MathDisplay extends H5P.EventDispatcher {
     }
     
     const self = this;
+
+    // Reuse the engine if another instance already started it.
+    if (window.MathJax?.startup?.document) {
+      self.mathjax = window.MathJax;
+      self.startMutationObserver();
+      return;
+    }
+
     const originalPageReady = MathJax.startup.pageReady;
-      MathJax.startup.pageReady = function () {
-        originalPageReady.apply(this, arguments);
-        self.mathjax = MathJax;
-        // Start observer once Mathjax is ready
-        self.startMutationObserver();
+    MathJax.startup.pageReady = function () {
+      originalPageReady.apply(this, arguments);
+      self.mathjax = MathJax;
+      self.startMutationObserver();
     };
+
+    // Inject the MathJax script only once per page.
+    if (window.H5PMathDisplayMathJaxRequested) {
+      return;
+    }
+    window.H5PMathDisplayMathJaxRequested = true;
 
     // Add MathJax script to document
     const script = document.createElement('script');
