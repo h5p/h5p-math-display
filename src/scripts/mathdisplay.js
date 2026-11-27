@@ -29,7 +29,7 @@ class MathDisplay extends H5P.EventDispatcher {
      * MathJax boots the speech worker from a blob so the paths handed to MathJax need to be absolute.
      */
     const distPath = new URL(`${this.libraryPath}/dist`, document.baseURI).href;
-    window.MathJax = getMathJaxConfig(distPath);
+    let mathDisplayMathJaxConfig = getMathJaxConfig(distPath);
 
     // Get settings from host
     this.settings = H5P.getLibraryConfig('H5P.MathDisplay') || {};
@@ -45,7 +45,10 @@ class MathDisplay extends H5P.EventDispatcher {
 
     // Load MathJax dynamically
     const settings = this.settings.renderer?.mathjax || null;
-    this.getMathJax(settings);
+    if (settings && settings.config) {
+      mathDisplayMathJaxConfig = this.extend(mathDisplayMathJaxConfig, settings.config);
+    }
+    this.getMathJax(mathDisplayMathJaxConfig);
   }
 
   /**
@@ -57,28 +60,46 @@ class MathDisplay extends H5P.EventDispatcher {
    * @param {object} settings - MathJax in-line configuration options.
    */
   getMathJax(settings) {
+   let mathDisplayConfig = {};
     // Add mathjax config before loading actual file
     if (settings && settings.config) {
-      MathJax = this.extend(MathJax, settings.config);
+      mathDisplayConfig = this.extend(mathDisplayConfig, settings.config);
     }
-    
-    const self = this;
-    const originalPageReady = MathJax.startup.pageReady;
-      MathJax.startup.pageReady = function () {
-        originalPageReady.apply(this, arguments);
-        self.mathjax = MathJax;
-        // Start observer once Mathjax is ready
+    // If no one added a MathJax configuration object until now, we can safely add ours
+    if (!window.MathJax) {
+       window.MathJax = mathDisplayConfig;
+    } else {
+       // If this happens we may have a config present that's incompatible with our MathJax version, unsure how to detect that and either wait or stop
+       // Also unsure if the MathDisplay MathJax config isn't necessary for the MathJax to filter correctly
+       // Also unsure whether one could extend the configuration after a MathJax has already loaded
+    }
+    let anyMathjaxLoaded = typeof window.MathJax?.typesetPromise === 'function');
+    if (!anyMathjaxLoaded) {
+       // We can load our Mathjax, the host hasn't loaded one yet
+       // Between deciding to do this and the script loading finished the host may have already loaded its MathJax
+       // Unsure what happens if another loaded MathJax encounters the host's MathJax (will it overwrite it so you just use our one?)
+       const self = this;
+       const originalPageReady = MathJax.startup.pageReady;
+         MathJax.startup.pageReady = function () {
+           originalPageReady.apply(this, arguments);
+           self.mathjax = MathJax;
+           // Start observer once Mathjax is ready
+           self.startMutationObserver();
+       };
+       // Add MathJax script to document
+       const script = document.createElement('script');
+       script.type = 'text/javascript';
+   
+       script.src = `${this.libraryPath}/dist/mathjax.js`;
+       script.async = true;
+   
+       document.body.appendChild(script);
+    } else {
+        // The host's Mathjax has already loaded, we just use that
+        self.mathjax = window.MathJax;
         self.startMutationObserver();
-    };
+    }
 
-    // Add MathJax script to document
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-
-    script.src = `${this.libraryPath}/dist/mathjax.js`;
-    script.async = true;
-
-    document.body.appendChild(script);
   }
 
   /**
